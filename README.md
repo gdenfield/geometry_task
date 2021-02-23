@@ -12,7 +12,7 @@ decision_fix_time
 decision_trace_time
 ITI_time
 
-## Fixation windows
+## Fixation Window
 fix_radius
 
 ## Reward Variables
