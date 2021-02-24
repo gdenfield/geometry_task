@@ -94,6 +94,15 @@ off_target1 = 6;
 off_target2 = 7;
 off_target3 = 8;
 
+%Lick monitor
+aim = AnalogInputMonitor(null_);
+aim.Channel = 1;                  % General Input 1
+aim.Position = [800 600 200 40];   % [left top width height]
+aim.YLim = [0 5];
+aim.Title = 'Lick Detector';
+tc = TimeCounter(aim);
+tc.Duration = 10000;
+
 % SCENES:
 % scene 1: fixation
 fix1 = SingleTarget(eye_);
@@ -102,7 +111,9 @@ fix1.Threshold = fix_radius;
 wth1 = WaitThenHold(fix1);       
 wth1.WaitTime = wait_for_fix;
 wth1.HoldTime = fix_time;
-scene1 = create_scene(wth1,fixation_point); 
+con1 = Concurrent(wth1);
+con1.add(tc);
+scene1 = create_scene(con1,fixation_point); 
 
 % scene 2: stimulus
 fix2 = SingleTarget(eye_);
@@ -111,7 +122,9 @@ fix2.Threshold = fix_radius;
 wth2 = WaitThenHold(fix2);
 wth2.WaitTime = 0; % Fixation is already acquired, so don't wait.
 wth2.HoldTime = stim_time;
-scene2 = create_scene(wth2, [fixation_point FP_background stimulus]);
+con2 = Concurrent(wth2);
+con2.add(tc);
+scene2 = create_scene(con2, [fixation_point FP_background stimulus]);
 
 % scene 3: stimulus trace
 fix3 = SingleTarget(eye_);
@@ -120,7 +133,9 @@ fix3.Threshold = fix_radius;
 wth3 = WaitThenHold(fix3);
 wth3.WaitTime = 0;
 wth3.HoldTime = stim_trace_time;
-scene3 = create_scene(wth3,fixation_point);
+con3 = Concurrent(wth3);
+con3.add(tc);
+scene3 = create_scene(con3,fixation_point);
 
 % scene 4: context/ switch/ none cue
 fix4 = SingleTarget(eye_);
@@ -129,20 +144,22 @@ fix4.Threshold = fix_radius;
 wth4 = WaitThenHold(fix4);
 wth4.WaitTime = 0;
 wth4.HoldTime = ctx_cue_time;
+con4 = Concurrent(wth4);
+con4.add(tc);
 try
     if hit_rate(TrialRecord.TrialErrors(end-performance_window:end))>=performance_thresh && TrialRecord.CurrentTrialWithinBlock>hint
         CC_trials = [CC_trials 0];
         dashboard(2, 'None Trial', [255 255 255])
-        scene4 = create_scene(wth4,[fixation_point FP_background]);
+        scene4 = create_scene(con4,[fixation_point FP_background]);
     else
         CC_trials = [CC_trials 1];
         dashboard(2, 'CC Trial',[255 0 255])
-        scene4 = create_scene(wth4,[fixation_point FP_background ctx_cue]);
+        scene4 = create_scene(con4,[fixation_point FP_background ctx_cue]);
     end
 catch
     CC_trials = [CC_trials 1];
     dashboard(2, 'CC Trial',[255 0 255])
-    scene4 = create_scene(wth4,[fixation_point FP_background ctx_cue]);
+    scene4 = create_scene(con4,[fixation_point FP_background ctx_cue]);
 end
 
 TrialRecord.User.CC_trials = CC_trials;
@@ -158,7 +175,9 @@ if wth5.HoldTime > ctx_cue_trace_time(2)
     wth5.HoldTime = ctx_cue_trace_time(2); % don't let the interval get too long
 end
 dashboard(6, sprintf('CC Delay: %.2f', wth5.HoldTime));
-scene5 = create_scene(wth5,[fixation_point target off_target1 off_target2 off_target3]);
+con5 = Concurrent(wth5);
+con5.add(tc);
+scene5 = create_scene(con5,[fixation_point target off_target1 off_target2 off_target3]);
 
 % scene 6a: Double saccade prevention
 fix6a = SingleTarget(eye_);
@@ -168,7 +187,9 @@ fix6a.Color = [255 0 0];
 wth6a = WaitThenHold(fix6a);
 wth6a.WaitTime = 0; % fixation is already acquired
 wth6a.HoldTime = max_decision_time; % allow up to max decision time to initiate saccade, when fix is broken saccade is initiated
-scene6a = create_scene(wth6a,[target off_target1 off_target2 off_target3]);
+con6a = Concurrent(wth6a);
+con6a.add(tc);
+scene6a = create_scene(con6a,[target off_target1 off_target2 off_target3]);
 
 % scene 6: choice
 mul6 = MultiTarget(eye_);
@@ -177,7 +198,9 @@ mul6.Threshold = fix_radius;
 mul6.WaitTime = double_thresh;
 mul6.HoldTime = decision_fix_time;
 mul6.TurnOffUnchosen = false;
-scene6 = create_scene(mul6,[target off_target1 off_target2 off_target3]);
+con6 = Concurrent(mul6);
+con6.add(tc);
+scene6 = create_scene(con6,[target off_target1 off_target2 off_target3]);
 
 
 % TASK:
