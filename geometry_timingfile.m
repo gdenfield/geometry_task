@@ -1,8 +1,42 @@
 if ~exist('eye_','var'), error('This task requires eye signal input. Please set it up or try the simulation mode.'); end
 hotkey('x', 'escape_screen(); assignin(''caller'',''continue_'',false);');
-bhv_code(10,'FP1',11,'Fixation Acquired',20,'Stimulus',30,'FP2',40,'CC Trial',42,'Switch Trial',45, 'None Trial',46,'Break Fix',50,'Targets On',55,'Early Answer',60,'Go',64,'Double Saccade',65,'Break Choice',66,'Choice Made', 70,'Pre-Reward',99,'Reward'); % behavioral codes
-trialerror(0, 'Correct', 1, 'Alternative', 2, 'Across', 3, 'Random', 4, 'No Fixation', 5, 'Break Fix', 6, 'Early Answer', 7, 'No Choice/ Break Choice', 8, 'Incorrect, CL', 9, 'Correct, CL'); % error codes
-editable('weight','fix_radius','wait_for_fix','fix_time','stim_time','stim_trace_time','ctx_cue_time','ctx_cue_trace_time','max_decision_time','decision_fix_time','decision_trace_time','solenoid_time','big_drops','drop_gaps','training_rewards', 'time_out', 'performance_thresh', 'hint');
+
+% Behavioral Codes
+bhv_code(...
+    10,'FP1',...
+    11,'Fixation Acquired',...
+    20,'Stimulus',...
+    30,'FP2',...
+    40,'CC Trial',...
+    42,'Switch Trial',...
+    45, 'None Trial',...
+    46,'Break Fix',...
+    50,'Targets On',...
+    55,'Early Answer',...
+    60,'Go',...
+    61,'Saccade Initated',...
+    62,'Scene 6',...
+    65,'Break Choice',...
+    66,'Choice Made',...
+    70,'Pre-Reward',...
+    99,'Reward'); 
+
+% Error Codes
+trialerror(... 
+    0, 'Correct',...
+    1, 'Alternative',...
+    2, 'Across',...
+    3, 'Random',...
+    4, 'No Fixation',...
+    5, 'Break Fix',...
+    6, 'Early Answer',...
+    7, 'No Choice/ Break Choice',...
+    8, 'Incorrect, CL',...
+    9, 'Correct, CL');
+
+% Online Editable Variables
+editable('weight','fix_radius','wait_for_fix','fix_time','stim_time','stim_trace_time','ctx_cue_time','ctx_cue_trace_time','max_decision_time','decision_fix_time','decision_trace_time','double_thresh','solenoid_time','big_drops','drop_gaps','training_rewards', 'time_out', 'performance_thresh', 'hint');
+
 persistent CC_trials
 persistent reward_count
 persistent directions
@@ -30,7 +64,7 @@ stim_trace_time = 1000;
 ctx_cue_time = 300;
 ctx_cue_trace_time = [180 230]; % time maintain fixation after ctx_cue
 max_decision_time = 1500;
-double_thresh = 500; % threshold to prevent double saccades
+double_thresh = 50; % threshold to prevent double saccades
 decision_fix_time = 100; % time to register choice
 decision_trace_time = 0; % period before reward delivery
 time_out = 2000; % increased ITI for wrong answers
@@ -123,14 +157,24 @@ wth5.HoldTime = exprnd(12)+ ctx_cue_trace_time(1); % add noise from exponential 
 if wth5.HoldTime > ctx_cue_trace_time(2)
     wth5.HoldTime = ctx_cue_trace_time(2); % don't let the interval get too long
 end
-disp(wth5.HoldTime)
+dashboard(6, sprintf('CC Delay: %.2f', wth5.HoldTime));
 scene5 = create_scene(wth5,[fixation_point target off_target1 off_target2 off_target3]);
+
+% scene 6a: Double saccade prevention
+fix6a = SingleTarget(eye_);
+fix6a.Target = fixation_point;
+fix6a.Threshold = fix_radius;
+fix6a.Color = [255 0 0];
+wth6a = WaitThenHold(fix6a);
+wth6a.WaitTime = 0; % fixation is already acquired
+wth6a.HoldTime = max_decision_time; % allow up to max decision time to initiate saccade, when fix is broken saccade is initiated
+scene6a = create_scene(wth6a,[target off_target1 off_target2 off_target3]);
 
 % scene 6: choice
 mul6 = MultiTarget(eye_);
 mul6.Target = [target off_target1 off_target2 off_target3];
 mul6.Threshold = fix_radius;
-mul6.WaitTime = max_decision_time;
+mul6.WaitTime = double_thresh;
 mul6.HoldTime = decision_fix_time;
 mul6.TurnOffUnchosen = false;
 scene6 = create_scene(mul6,[target off_target1 off_target2 off_target3]);
@@ -220,9 +264,18 @@ else
     if training_rewards(5), goodmonkey(solenoid_time, 'numreward', little_drops); end
 end
 
+% scene 6a: Double saccade prevention
+run_scene(scene6a, 60); % Go cue
+
+if ~wth6a.Success % Saccade initiated
+    eventmarker(61)
+else
+    trialerror(7); % No Choice
+end
+
 % scene 6: choice
-run_scene(scene6, 60);
-rt = mul6.RT;
+run_scene(scene6, 62);
+rt = mul6.RT;    
 
 if ~mul6.Waiting
     eventmarker(66) % Choice Made 
@@ -231,7 +284,7 @@ end
 if ~mul6.Success
     idle(0);
     if mul6.Waiting
-        trialerror(7); % No Choice
+        trialerror(7); % No Choice or double saccade
     else
         trialerror(7); % Break Choice
         eventmarker(65)
