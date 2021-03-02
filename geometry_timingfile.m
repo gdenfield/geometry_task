@@ -35,7 +35,7 @@ trialerror(...
     9, 'Correct, CL');
 
 % Online Editable Variables
-editable('weight','fix_radius','wait_for_fix','fix_time','stim_time','stim_trace_time','ctx_cue_time','ctx_cue_trace_time','max_decision_time','decision_fix_time','decision_trace_time','double_thresh','solenoid_time','big_drops','drop_gaps','training_rewards', 'time_out', 'performance_thresh', 'hint');
+editable('weight','fix_radius','wait_for_fix','fix_time','stim_time','stim_trace_time','ctx_cue_time','ctx_cue_trace_time','max_decision_time','decision_fix_time','decision_trace_time','double_thresh', 'break_time', 'solenoid_time','big_drops','drop_gaps','training_rewards', 'time_out', 'performance_thresh', 'hint');
 
 persistent CC_trials
 persistent reward_count
@@ -65,6 +65,7 @@ ctx_cue_time = 300;
 ctx_cue_trace_time = [180 230]; % time maintain fixation after ctx_cue
 max_decision_time = 1500;
 double_thresh = 50; % threshold to prevent double saccades
+break_time = 200; % threshold for loose hold breaks (for blinking)
 decision_fix_time = 100; % time to register choice
 decision_trace_time = 0; % period before reward delivery
 time_out = 2000; % increased ITI for wrong answers
@@ -97,11 +98,11 @@ off_target3 = 8;
 %Lick monitor
 aim = AnalogInputMonitor(null_);
 aim.Channel = 1;                  % General Input 1
-aim.Position = [800 600 200 40];   % [left top width height]
+aim.Position = [800 600 500 40];   % [left top width height]
 aim.YLim = [0 5];
 aim.Title = 'Lick Detector';
 tc = TimeCounter(aim);
-tc.Duration = 10000;
+tc.Duration = 50000;
 
 % SCENES:
 % scene 1: fixation
@@ -119,10 +120,11 @@ scene1 = create_scene(con1,fixation_point);
 fix2 = SingleTarget(eye_);
 fix2.Target = fixation_point;
 fix2.Threshold = fix_radius;
-wth2 = WaitThenHold(fix2);
-wth2.WaitTime = 0; % Fixation is already acquired, so don't wait.
-wth2.HoldTime = stim_time;
-con2 = Concurrent(wth2);
+lh2 = LooseHold(fix2);
+%wth2.WaitTime = 0; % Fixation is already acquired, so don't wait.
+lh2.HoldTime = stim_time;
+lh2.BreakTime = break_time; % To allow for blinks
+con2 = Concurrent(lh2);
 con2.add(tc);
 scene2 = create_scene(con2, [fixation_point FP_background stimulus]);
 
@@ -130,10 +132,11 @@ scene2 = create_scene(con2, [fixation_point FP_background stimulus]);
 fix3 = SingleTarget(eye_);
 fix3.Target = fixation_point;
 fix3.Threshold = fix_radius;
-wth3 = WaitThenHold(fix3);
-wth3.WaitTime = 0;
-wth3.HoldTime = stim_trace_time;
-con3 = Concurrent(wth3);
+lh3 = LooseHold(fix3);
+%wth3.WaitTime = 0;
+lh3.HoldTime = stim_trace_time;
+lh3.BreakTime = break_time;
+con3 = Concurrent(lh3);
 con3.add(tc);
 scene3 = create_scene(con3,fixation_point);
 
@@ -141,10 +144,11 @@ scene3 = create_scene(con3,fixation_point);
 fix4 = SingleTarget(eye_);
 fix4.Target = fixation_point;
 fix4.Threshold = fix_radius;
-wth4 = WaitThenHold(fix4);
-wth4.WaitTime = 0;
-wth4.HoldTime = ctx_cue_time;
-con4 = Concurrent(wth4);
+lh4 = LooseHold(fix4);
+%wth4.WaitTime = 0;
+lh4.HoldTime = ctx_cue_time;
+lh4.BreakTime = break_time;
+con4 = Concurrent(lh4);
 con4.add(tc);
 try
     if hit_rate(TrialRecord.TrialErrors(end-performance_window:end))>=performance_thresh && TrialRecord.CurrentTrialWithinBlock>hint
@@ -168,14 +172,16 @@ TrialRecord.User.CC_trials = CC_trials;
 fix5 = SingleTarget(eye_);
 fix5.Target = fixation_point;
 fix5.Threshold = fix_radius;
-wth5 = WaitThenHold(fix5);
-wth5.WaitTime = 0;
-wth5.HoldTime = exprnd(12)+ ctx_cue_trace_time(1); % add noise from exponential distribution (i.e. flat hazard rate)
-if wth5.HoldTime > ctx_cue_trace_time(2)
-    wth5.HoldTime = ctx_cue_trace_time(2); % don't let the interval get too long
+lh5 = LooseHold(fix5);
+%lh5.WaitTime = 0;
+%lh5.HoldTime = randi(ctx_cue_trace_time);
+lh5.BreakTime = break_time;
+lh5.HoldTime = exprnd(300)+ ctx_cue_trace_time(1); % add noise from exponential distribution (i.e. flat hazard rate)
+if lh5.HoldTime > ctx_cue_trace_time(2)
+    lh5.HoldTime = ctx_cue_trace_time(2); % don't let the interval get too long
 end
-dashboard(6, sprintf('CC Delay: %.2f', wth5.HoldTime));
-con5 = Concurrent(wth5);
+dashboard(6, sprintf('CC Delay: %.2f', lh5.HoldTime));
+con5 = Concurrent(lh5);
 con5.add(tc);
 scene5 = create_scene(con5,[fixation_point target off_target1 off_target2 off_target3]);
 
@@ -220,6 +226,7 @@ end
 
 direction_count = [sum(directions==1) sum(directions==2) sum(directions==3) sum(directions==4)];
 dashboard(5, ['Choices [Up Right Down Left]: ' num2str(direction_count)], [255 255 0]); 
+dashboard(7, sprintf('Percent Early Choices: %.2f', sum(TrialRecord.TrialErrors==6)/length(TrialRecord.TrialErrors)*100),[255 0 0]); 
 
 directions = [directions 0];
 
@@ -241,7 +248,7 @@ end
 
 % scene 2: stimulus
 run_scene(scene2,20);
-if ~wth2.Success
+if ~lh2.Success
     idle(0);
     trialerror(5); % Break Fixation
     eventmarker(46);
@@ -252,7 +259,7 @@ end
 
 % scene 3: stimulus trace
 run_scene(scene3,30);
-if ~wth3.Success
+if ~lh3.Success
     idle(0);
     trialerror(5); % Break Fixation
     eventmarker(46);
@@ -267,7 +274,7 @@ if TrialRecord.User.CC_trials(end)
 else
     run_scene(scene4,45);
 end
-if ~wth4.Success
+if ~lh4.Success
     idle(0);
     trialerror(5); % Break Fixation
     eventmarker(46);
@@ -278,7 +285,7 @@ end
 
 % scene 5: context trace, targets on
 run_scene(scene5, 50);
-if ~wth5.Success
+if ~lh5.Success
     idle(0);
     trialerror(6); % Early Answer
     eventmarker(55) % Early Answer
