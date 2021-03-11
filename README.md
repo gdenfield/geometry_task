@@ -42,6 +42,7 @@ For all: success --> next scene, failure --> scene 1
 ## Behavioral Codes
 10, 'FP1'
 11, 'Fixation Acquired'
+13, 'Skipped Frame'
 20, 'Stimulus'
 30, 'FP2'
 40, 'CC trial'

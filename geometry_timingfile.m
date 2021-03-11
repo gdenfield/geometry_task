@@ -35,7 +35,10 @@ trialerror(...
     9, 'Correct, CL');
 
 % Online Editable Variables
-editable('weight','fix_radius','wait_for_fix','fix_time','stim_time','stim_trace_time','ctx_cue_time','ctx_cue_trace_time','max_decision_time','decision_fix_time','decision_trace_time','double_thresh', 'break_time', 'solenoid_time','big_drops','drop_gaps','training_rewards', 'time_out', 'performance_thresh', 'hint');
+editable('weight','fix_radius','wait_for_fix','fix_time','stim_time','stim_trace_time','ctx_cue_time','ctx_cue_trace_time','max_decision_time','decision_fix_time','decision_trace_time','double_thresh', 'blink_time', 'solenoid_time','big_drops','drop_gaps','training_rewards', 'time_out', 'performance_thresh', 'hint');
+
+
+TrialRecord.MarkSkippedFrames = true; % Records eventcode 13 as skipped frames
 
 persistent CC_trials
 persistent reward_count
@@ -65,7 +68,7 @@ ctx_cue_time = 300;
 ctx_cue_trace_time = [180 230]; % time maintain fixation after ctx_cue
 max_decision_time = 1500;
 double_thresh = 50; % threshold to prevent double saccades
-break_time = 200; % threshold for loose hold breaks (for blinking)
+blink_time = 200; % threshold for loose hold breaks (for blinking)
 decision_fix_time = 100; % time to register choice
 decision_trace_time = 0; % period before reward delivery
 time_out = 2000; % increased ITI for wrong answers
@@ -123,7 +126,7 @@ fix2.Threshold = fix_radius;
 lh2 = LooseHold(fix2);
 %wth2.WaitTime = 0; % Fixation is already acquired, so don't wait.
 lh2.HoldTime = stim_time;
-lh2.BreakTime = break_time; % To allow for blinks
+lh2.BreakTime = blink_time; % To allow for blinks
 con2 = Concurrent(lh2);
 con2.add(tc);
 scene2 = create_scene(con2, [fixation_point FP_background stimulus]);
@@ -135,7 +138,7 @@ fix3.Threshold = fix_radius;
 lh3 = LooseHold(fix3);
 %wth3.WaitTime = 0;
 lh3.HoldTime = stim_trace_time;
-lh3.BreakTime = break_time;
+lh3.BreakTime = blink_time;
 con3 = Concurrent(lh3);
 con3.add(tc);
 scene3 = create_scene(con3,fixation_point);
@@ -147,7 +150,7 @@ fix4.Threshold = fix_radius;
 lh4 = LooseHold(fix4);
 %wth4.WaitTime = 0;
 lh4.HoldTime = ctx_cue_time;
-lh4.BreakTime = break_time;
+lh4.BreakTime = blink_time;
 con4 = Concurrent(lh4);
 con4.add(tc);
 try
@@ -175,7 +178,7 @@ fix5.Threshold = fix_radius;
 lh5 = LooseHold(fix5);
 %lh5.WaitTime = 0;
 %lh5.HoldTime = randi(ctx_cue_trace_time);
-lh5.BreakTime = break_time;
+lh5.BreakTime = blink_time;
 lh5.HoldTime = exprnd(300)+ ctx_cue_trace_time(1); % add noise from exponential distribution (i.e. flat hazard rate)
 if lh5.HoldTime > ctx_cue_trace_time(2)
     lh5.HoldTime = ctx_cue_trace_time(2); % don't let the interval get too long
@@ -296,7 +299,6 @@ end
 
 % scene 6a: Double saccade prevention
 run_scene(scene6a, 60); % Go cue
-
 if ~wth6a.Success % Saccade initiated
     eventmarker(61)
 else
@@ -305,7 +307,7 @@ end
 
 % scene 6: choice
 run_scene(scene6, 62);
-rt = mul6.RT;    
+rt = mul6.AcquiredTime;    
 
 if ~mul6.Waiting
     eventmarker(66) % Choice Made 
