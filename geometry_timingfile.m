@@ -1,6 +1,7 @@
 if ~exist('eye_','var'), error('This task requires eye signal input. Please set it up or try the simulation mode.'); end
 hotkey('x', 'escape_screen(); assignin(''caller'',''continue_'',false);');
 
+
 % Behavioral Codes
 bhv_code(...
     10,'FP1',...
@@ -9,13 +10,13 @@ bhv_code(...
     30,'FP2',...
     40,'CC Trial',...
     42,'Switch Trial',...
-    45, 'None Trial',...
+    45,'None Trial',...
     46,'Break Fix',...
     50,'Targets On',...
     55,'Early Answer',...
     60,'Go',...
     61,'Saccade Initated',...
-    62,'Scene 6',...
+    62,'Making Choice',...
     65,'Break Choice',...
     66,'Choice Made',...
     70,'Pre-Reward',...
@@ -35,18 +36,40 @@ trialerror(...
     9, 'Correct, CL');
 
 % Online Editable Variables
-editable('weight','fix_radius','wait_for_fix','fix_time','stim_time','stim_trace_time','ctx_cue_time','ctx_cue_trace_time','max_decision_time','decision_fix_time','decision_trace_time','double_thresh', 'blink_time', 'solenoid_time','big_drops','drop_gaps','training_rewards', 'time_out', 'performance_thresh', 'hint');
+editable(...
+    'weight',...
+    'fix_radius',...
+    'wait_for_fix',...
+    'fix_time',...
+    'stim_time',...
+    'stim_trace_time',...
+    'ctx_cue_time',...
+    'ctx_cue_trace_time',...
+    'max_decision_time',...
+    'decision_fix_time',...
+    'decision_trace_time',...
+    'double_thresh',...
+    'blink_time',...
+    'solenoid_time',...
+    'big_drops',...
+    'drop_gaps',...
+    'training_rewards',...
+    'time_out',...
+    'hint');
 
 
 TrialRecord.MarkSkippedFrames = true; % Records eventcode 13 as skipped frames
 
 persistent CC_trials
+persistent SC_trials
+persistent None_trials
 persistent reward_count
 persistent directions
 
 if isempty(CC_trials)
     CC_trials = [];
-    
+    SC_trials = [];
+    None_trials = [];
     directions = [];
 end
 
@@ -77,7 +100,6 @@ time_out = 2000; % increased ITI for wrong answers
 weight = NaN;
 TrialRecord.User.weight = weight;
 fix_radius = 2.5; % degrees
-performance_thresh = 0; % running HR threshold to turn off ctx_cue
 performance_window = 10; % compute running HR based on n trials back
 hint = 10; % # trials to show context cue independent of performance
 
@@ -97,6 +119,7 @@ target = 5;
 off_target1 = 6;
 off_target2 = 7;
 off_target3 = 8;
+switch_cue = 9;
 
 %Lick monitor
 aim = AnalogInputMonitor(null_);
@@ -124,7 +147,6 @@ fix2 = SingleTarget(eye_);
 fix2.Target = fixation_point;
 fix2.Threshold = fix_radius;
 lh2 = LooseHold(fix2);
-%wth2.WaitTime = 0; % Fixation is already acquired, so don't wait.
 lh2.HoldTime = stim_time;
 lh2.BreakTime = blink_time; % To allow for blinks
 con2 = Concurrent(lh2);
@@ -136,7 +158,6 @@ fix3 = SingleTarget(eye_);
 fix3.Target = fixation_point;
 fix3.Threshold = fix_radius;
 lh3 = LooseHold(fix3);
-%wth3.WaitTime = 0;
 lh3.HoldTime = stim_trace_time;
 lh3.BreakTime = blink_time;
 con3 = Concurrent(lh3);
@@ -148,36 +169,56 @@ fix4 = SingleTarget(eye_);
 fix4.Target = fixation_point;
 fix4.Threshold = fix_radius;
 lh4 = LooseHold(fix4);
-%wth4.WaitTime = 0;
 lh4.HoldTime = ctx_cue_time;
 lh4.BreakTime = blink_time;
 con4 = Concurrent(lh4);
 con4.add(tc);
-try
-    if hit_rate(TrialRecord.TrialErrors(end-performance_window:end))>=performance_thresh && TrialRecord.CurrentTrialWithinBlock>hint
-        CC_trials = [CC_trials 0];
-        dashboard(2, 'None Trial', [255 255 255])
-        scene4 = create_scene(con4,[fixation_point FP_background]);
-    else
-        CC_trials = [CC_trials 1];
-        dashboard(2, 'CC Trial',[255 0 255])
-        scene4 = create_scene(con4,[fixation_point FP_background ctx_cue]);
-    end
-catch
+
+% Tests for trial type
+% SC Trial
+% Determined in userloop file!!
+
+% CC Trial
+if ~TrialRecord.User.SC
+    TrialRecord.User.CC = TrialRecord.CurrentTrialWithinBlock<=hint;
+end
+
+% None Trial
+TrialRecord.User.None = ~TrialRecord.User.CC && ~TrialRecord.User.SC;
+
+
+%Build Scene
+if TrialRecord.User.SC
+    CC_trials = [CC_trials 0];
+    SC_trials = [SC_trials 1];
+    None_trials = [None_trials 0];
+    dashboard(2, 'SC Trial',[255 255 0])
+    scene4 = create_scene(con4,[fixation_point FP_background switch_cue]);
+    
+elseif TrialRecord.User.CC
     CC_trials = [CC_trials 1];
+    SC_trials = [SC_trials 0];
+    None_trials = [None_trials 0];
     dashboard(2, 'CC Trial',[255 0 255])
     scene4 = create_scene(con4,[fixation_point FP_background ctx_cue]);
+    
+elseif TrialRecord.User.None
+    CC_trials = [CC_trials 0];
+    SC_trials = [SC_trials 0];
+    None_trials = [None_trials 1];
+    dashboard(2, 'None Trial', [255 255 255])
+    scene4 = create_scene(con4,[fixation_point FP_background]);
 end
 
 TrialRecord.User.CC_trials = CC_trials;
+TrialRecord.User.SC_trials = SC_trials;
+TrialRecord.User.None_trials = None_trials;
 
 % scene 5: context trace, targets on
 fix5 = SingleTarget(eye_);
 fix5.Target = fixation_point;
 fix5.Threshold = fix_radius;
 lh5 = LooseHold(fix5);
-%lh5.WaitTime = 0;
-%lh5.HoldTime = randi(ctx_cue_trace_time);
 lh5.BreakTime = blink_time;
 lh5.HoldTime = exprnd(300)+ ctx_cue_trace_time(1); % add noise from exponential distribution (i.e. flat hazard rate)
 if lh5.HoldTime > ctx_cue_trace_time(2)
@@ -274,9 +315,12 @@ end
 % scene 4: context cue
 if TrialRecord.User.CC_trials(end)
     run_scene(scene4,40);
+elseif TrialRecord.User.SC_trials(end)
+    run_scene(scene4,42);
 else
     run_scene(scene4,45);
 end
+
 if ~lh4.Success
     idle(0);
     trialerror(5); % Break Fixation

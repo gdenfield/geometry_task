@@ -2,7 +2,7 @@ function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,Tri
 %MJP 11/11/2020
 
 % Training variables
-z = 70; % Number of correct trials before block (context) switch
+block_length = 150; % Number of correct trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
 CL_threshold = -3; % Number of errors for a given condition before starting correction loop
 CL_depth = 3; % Number of times condition will be repeated in CL
@@ -23,7 +23,8 @@ persistent incorrect_counts % running tally of incorrect answers
 persistent CL_counter % [number of repeats left in CL, condition number]
 persistent CL_errors % counts mistakes within correction loop
 persistent CL_trials
-persistent first_block
+persistent first_context
+persistent context
 persistent timing_filename_returned
 if isempty(condition_correct) || TrialRecord.BlockChange %Reset counters if start of session or block change happened
     condition_correct = zeros(1,2*n_fractals);
@@ -41,6 +42,7 @@ end
 
 TrialRecord.User.correct_counts = correct_counts;
 TrialRecord.User.incorrect_counts = incorrect_counts;
+%TrialRecord.User.SC = TrialRecord.CurrentTrialWithinBlock==7;
 
 % Trial Conditions
 target_distance = 7; %degrees from center, for all target locations (up, right, down, left)
@@ -60,15 +62,32 @@ conditions =... %Context 1: rows 1-4, Context 2: rows 5-8
     2 6 down right up left;
     4 6 up left down right];
 
-%Randomly select block if first trial
+% Randomly select block if first trial
 if isempty(TrialRecord.TrialErrors)
-    first_block = randi([0,1]);
+    first_context = 2;%randi([1,2]);
+    context = first_context;
+    TrialRecord.User.SC = 0; % for first call
 end
 
-%Increase the block number after z correct trials
-% correct_trial_count = sum(0==TrialRecord.TrialErrors);
-% block = mod(floor((correct_trial_count+(z^first_block))/z),2) + 1;
-block = 2; %for training
+% Switch Procedure
+if TrialRecord.CurrentTrialWithinBlock >= block_length
+    if TrialRecord.User.SC_trials(end)
+        TrialRecord.User.SC = 0;
+        switch_test = randi([0,1]);
+        disp('Switch Test: ')
+        if switch_test
+            disp('Success!')
+            switch context
+                case 1
+                    context = 2;
+                case 2
+                    context = 1;
+            end
+        end
+    else
+        TrialRecord.User.SC = 1;
+    end
+end
 
 %Increase sequence counter based on last trial
 try
@@ -94,8 +113,8 @@ catch
 end
 
 %Reset sequence count if each fractal has been encountered enough times
-if sum(condition_correct(1,(1:4)+((block-1)*4))) == sequence_depth*n_fractals
-    condition_correct = zeros(1,2*n_fractals);
+if sum(condition_correct(1,(1:4)+( (context - 1) * 4))) == (sequence_depth * n_fractals)
+    condition_correct = zeros(1,2 * n_fractals);
 end
 
 %Update CL_counter
@@ -129,7 +148,7 @@ end
 
 %Pick fractal
 while pick_condition
-    condition = randi(n_fractals)+((block-1)*4);
+    condition = randi(n_fractals)+((context-1)*4);
     if condition_correct(condition) < sequence_depth
         chosen_condition = conditions(condition,:);
         pick_condition = 0;
@@ -230,11 +249,19 @@ C(8).FillFlag = 1;
 C(8).Xpos = off3_x;
 C(8).Ypos = off3_y;
 
+%8: off_target3
+C(9).Type = 'crc';
+C(9).Radius = 3;     % visual angle
+C(9).Color = [255 255 0];  % [R G B]
+C(9).FillFlag = 1;
+C(9).Xpos = 0;
+C(9).Ypos = 0;
+
 % Set the block number and the condition number of the next trial. Since
 % this userloop function provides the list of TaskObjects and timingfile
 % names, ML does not need the block/condition number. They are just for
 % your reference.
 % However, if TrialRecord.NextBlock is -1, the task ends immediately
 % without running the next trial.
-TrialRecord.NextBlock = block;
+TrialRecord.NextBlock = context;
 TrialRecord.NextCondition = condition;
