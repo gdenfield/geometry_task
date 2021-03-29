@@ -2,14 +2,12 @@ function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,Tri
 %MJP 11/11/2020
 
 % Training variables
-block_length = 150; % Number of correct trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
 CL_threshold = -3; % Number of errors for a given condition before starting correction loop
 CL_depth = 3; % Number of times condition will be repeated in CL
 n_fractals = 4; % 1-4, set to 4 for full set of fractals
 %training = 5; % 1-8, SINGLE-CONDITION TRAINING, SEE CAPS COMMENT BELOW TOO!!
-contrast = 1; % 0-1 for off-target FPs
-instructed_threshold = 10; % Adjust contrast after threshold errors in a row, only in CL
+instructed_threshold = 5; % Adjust contrast after threshold errors in a row, only in CL
 
 % Initialize ML variables
 C = [];
@@ -25,6 +23,7 @@ persistent CL_errors % counts mistakes within correction loop
 persistent CL_trials
 persistent first_context
 persistent context
+persistent block_length
 persistent timing_filename_returned
 if isempty(condition_correct) || TrialRecord.BlockChange %Reset counters if start of session or block change happened
     condition_correct = zeros(1,2*n_fractals);
@@ -34,15 +33,16 @@ if isempty(condition_correct) || TrialRecord.BlockChange %Reset counters if star
     CL_counter = [0 0]; 
     CL_errors = 0;
     CL_trials = [];
+    TrialRecord.User.contrast = 1;
 end
 if isempty(timing_filename_returned)
     timing_filename_returned = true;
     return
 end
 
+contrast = TrialRecord.User.contrast; % 0-1 for off-target FPs
 TrialRecord.User.correct_counts = correct_counts;
 TrialRecord.User.incorrect_counts = incorrect_counts;
-%TrialRecord.User.SC = TrialRecord.CurrentTrialWithinBlock==7;
 
 % Trial Conditions
 target_distance = 7; %degrees from center, for all target locations (up, right, down, left)
@@ -51,7 +51,7 @@ right = [target_distance 0];
 down = [0 -target_distance];
 left = [-target_distance 0];
 
-image_list = {'stim_0.png','stim_1.png','stim_2.png', 'stim_3.png', 'stim_4.png', 'stim_5.png'};
+image_list = {'stim_6.png','stim_8.png','stim_13.png', 'stim_17.png', 'cc_1.png', 'cc_2.png'};
 conditions =... %Context 1: rows 1-4, Context 2: rows 5-8
    [1 5 up right down left;  % [stimulus ctx_cue target off_target1 off_target2 off_target3]
     3 5 down left up right;  % off_target1 = correct in other context
@@ -64,12 +64,13 @@ conditions =... %Context 1: rows 1-4, Context 2: rows 5-8
 
 % Randomly select block if first trial
 if isempty(TrialRecord.TrialErrors)
-    first_context = 2;%randi([1,2]);
+    first_context = 1;%randi([1,2]);
     context = first_context;
     TrialRecord.User.SC = 0; % for first call
 end
 
 % Switch Procedure
+block_length = 100000; % Number of trials before context switch
 if TrialRecord.CurrentTrialWithinBlock >= block_length
     if TrialRecord.User.SC_trials(end)
         TrialRecord.User.SC = 0;
@@ -161,7 +162,7 @@ TrialRecord.User.CL_trials = CL_trials;
 
 %Adjust contrast on instructed trials within CL
 if CL_errors >= instructed_threshold
-    contrast = 0.2;
+    contrast = 0.7;
 %       %To reset counter after correct CL trials
 %     if TrialRecord.TrialErrors(end) == 9
 %         CL_errors = 0;

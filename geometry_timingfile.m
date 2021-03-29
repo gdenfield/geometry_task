@@ -55,7 +55,8 @@ editable(...
     'drop_gaps',...
     'training_rewards',...
     'time_out',...
-    'hint');
+    'hint',...
+    'contrast');
 
 
 TrialRecord.MarkSkippedFrames = true; % Records eventcode 13 as skipped frames
@@ -102,6 +103,8 @@ TrialRecord.User.weight = weight;
 fix_radius = 2.5; % degrees
 performance_window = 10; % compute running HR based on n trials back
 hint = 10; % # trials to show context cue independent of performance
+contrast = 1;
+TrialRecord.User.contrast = contrast;
 
 % Reward variables:
 training_rewards = [0 0 0 0 0]; % change to 1 to turn on training rewards for given scene (1-5)
