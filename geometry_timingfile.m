@@ -19,7 +19,8 @@ bhv_code(...
     62,'Making Choice',...
     65,'Break Choice',...
     66,'Choice Made',...
-    70,'Pre-Reward',...
+    70,'Pre-Reward, Early',...
+    71,'Pre-Reward, Late',...
     99,'Reward'); 
 
 % Error Codes
@@ -48,6 +49,7 @@ editable(...
     'max_decision_time',...
     'decision_fix_time',...
     'decision_trace_time',...
+    'late_reward_delay',...
     'double_thresh',...
     'blink_time',...
     'solenoid_time',...
@@ -94,14 +96,15 @@ max_decision_time = 1500;
 double_thresh = 50; % threshold to prevent double saccades
 blink_time = 200; % threshold for loose hold breaks (for blinking)
 decision_fix_time = 100; % time to register choice
-decision_trace_time = 0; % period before reward delivery
+decision_trace_time = 300; % period before reward delivery
+late_reward_delay = 500; % additional delay for late reward trials
 time_out = 2000; % increased ITI for wrong answers
 
 % Training variables:
 weight = NaN;
 TrialRecord.User.weight = weight;
 fix_radius = 2.5; % degrees
-performance_window = 10; % compute running HR based on n trials back
+performance_window = 50; % compute running HR based on n trials back
 hint = 10; % # trials to show context cue independent of performance
 contrast = 1;
 TrialRecord.User.contrast = contrast;
@@ -374,12 +377,20 @@ end
 % Rewards
 if target==mul6.ChosenTarget
     if TrialRecord.User.CL
-            trialerror(9); % Correct CL trial
+        trialerror(9); % Correct CL trial
+        if ismember(TrialRecord.CurrentCondition,[2 4 5 8])
+            idle(decision_trace_time + late_reward_delay, [],71)
+        else
             idle(decision_trace_time,[], 70)
-            goodmonkey(solenoid_time, 'numreward', big_drops, 'pausetime', drop_gaps, 'eventmarker',99);
+        end
+        goodmonkey(solenoid_time, 'numreward', big_drops, 'pausetime', drop_gaps, 'eventmarker',99);
     else
         trialerror(0); % Correct
-        idle(decision_trace_time,[], 70)
+        if ismember(TrialRecord.CurrentCondition,[2 4 5 8])
+            idle(decision_trace_time + late_reward_delay, [],71)
+        else
+            idle(decision_trace_time,[], 70)
+        end
         goodmonkey(solenoid_time, 'numreward', big_drops, 'pausetime', drop_gaps, 'eventmarker',99);
     end
     

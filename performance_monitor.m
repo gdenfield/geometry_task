@@ -1,6 +1,6 @@
 function performance_monitor(TrialRecord)
     n = 300; % Change to monitor n trials back
-    window = 10; % number of trials in running HR
+    window = 50; % number of trials in running HR
     mL_per_drop = 0.13; %Make sure agrees with daily_report.mlx
     
     if TrialRecord.CurrentTrialNumber > n
@@ -76,7 +76,8 @@ function performance_monitor(TrialRecord)
             running_RR(j) = RC(end)/j;
         end
     end
-    
+    clc;
+    fprintf([num2str(window) '-Trial RR: %.3f\n'], running_RR(end));
     plot(trial_number, running_HR,'-k')
     plot(trial_number, running_RR,'-b')
     yline(hit_rate(TrialRecord.TrialErrors),'--k')
