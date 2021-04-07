@@ -34,6 +34,7 @@ if isempty(condition_correct) || TrialRecord.BlockChange %Reset counters if star
     CL_errors = 0;
     CL_trials = [];
     TrialRecord.User.contrast = 1;
+    TrialRecord.User.switch = 0;
 end
 if isempty(timing_filename_returned)
     timing_filename_returned = true;
@@ -71,19 +72,18 @@ end
 
 % Switch Procedure
 block_length = 100000; % Number of trials before context switch
-if TrialRecord.CurrentTrialWithinBlock >= block_length
+if TrialRecord.CurrentTrialWithinBlock >= block_length || TrialRecord.User.switch == 1
     if TrialRecord.User.SC_trials(end)
         TrialRecord.User.SC = 0;
         switch_test = randi([0,1]);
-        disp('Switch Test: ')
         if switch_test
-            disp('Success!')
             switch context
                 case 1
                     context = 2;
                 case 2
                     context = 1;
             end
+            TrialRecord.User.switch = 0;
         end
     else
         TrialRecord.User.SC = 1;

@@ -1,5 +1,6 @@
 if ~exist('eye_','var'), error('This task requires eye signal input. Please set it up or try the simulation mode.'); end
 hotkey('x', 'escape_screen(); assignin(''caller'',''continue_'',false);');
+hotkey('s', 'TrialRecord.User.switch = 1;'); % press 's' key during task to manually trigger context switch (with SC trials)
 
 
 % Behavioral Codes
@@ -56,9 +57,10 @@ editable(...
     'big_drops',...
     'drop_gaps',...
     'training_rewards',...
+    'training_reward_prob',...
     'time_out',...
-    'hint',...
-    'contrast');
+    'n_cc_trials',...
+    'off_target_contrast');
 
 
 TrialRecord.MarkSkippedFrames = true; % Records eventcode 13 as skipped frames
@@ -81,8 +83,9 @@ if isempty(reward_count)
 else
     reward_count = [reward_count (reward_count(end) + sum(TrialRecord.LastTrialCodes.CodeNumbers==99))];
 end
+
 TrialRecord.User.reward_count = reward_count;
-dashboard(3, sprintf(['Total Reward: ' num2str(reward_count(end)) ' drops, %.2f drops/ trial'], (reward_count(end)./ TrialRecord.CurrentTrialNumber)), [0 255 255]);
+dashboard(3, ['Rewarded Trials: ' num2str(sum(TrialRecord.TrialErrors==0) + sum(TrialRecord.TrialErrors==9)) ', Completed Trials: ' num2str(sum(TrialRecord.TrialErrors==0) + sum(TrialRecord.TrialErrors==1) + sum(TrialRecord.TrialErrors==2) + sum(TrialRecord.TrialErrors==3) + sum(TrialRecord.TrialErrors==8) + sum(TrialRecord.TrialErrors==9))], [0 255 255]);
 
 % PARAMETERS
 % Time intervals (in ms):
@@ -105,12 +108,13 @@ weight = NaN;
 TrialRecord.User.weight = weight;
 fix_radius = 2.5; % degrees
 performance_window = 50; % compute running HR based on n trials back
-hint = 10; % # trials to show context cue independent of performance
-contrast = 1;
-TrialRecord.User.contrast = contrast;
+n_cc_trials = 10; % # trials to show context cue independent of performance
+off_target_contrast = 1;
+TrialRecord.User.contrast = off_target_contrast;
 
 % Reward variables:
 training_rewards = [0 0 0 0 0]; % change to 1 to turn on training rewards for given scene (1-5)
+training_reward_prob = .5; % probability of random reward delivery
 solenoid_time = 200; %ms
 drop_gaps = 0; %ms
 little_drops = 1; %number of pulses
@@ -186,7 +190,7 @@ con4.add(tc);
 
 % CC Trial
 if ~TrialRecord.User.SC
-    TrialRecord.User.CC = TrialRecord.CurrentTrialWithinBlock<=hint;
+    TrialRecord.User.CC = TrialRecord.CurrentTrialWithinBlock<=n_cc_trials;
 end
 
 % None Trial
@@ -293,7 +297,7 @@ if ~wth1.Success
     return
 else
     eventmarker(11) % Fixation acquired
-    if training_rewards(1), goodmonkey(solenoid_time, 'numreward', little_drops); end
+    if training_rewards(1), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', little_drops); end, end
 end
 
 % scene 2: stimulus
@@ -304,7 +308,7 @@ if ~lh2.Success
     eventmarker(46);
     return
 else
-    if training_rewards(2), goodmonkey(solenoid_time, 'numreward', little_drops); end
+    if training_rewards(2), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', little_drops); end, end
 end
 
 % scene 3: stimulus trace
@@ -315,7 +319,7 @@ if ~lh3.Success
     eventmarker(46);
     return
 else
-    if training_rewards(3), goodmonkey(solenoid_time, 'numreward', little_drops); end
+    if training_rewards(3), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', little_drops); end, end
 end
 
 % scene 4: context cue
@@ -333,7 +337,7 @@ if ~lh4.Success
     eventmarker(46);
     return
 else
-    if training_rewards(4), goodmonkey(solenoid_time, 'numreward', little_drops); end
+    if training_rewards(4), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', little_drops); end, end
 end
 
 % scene 5: context trace, targets on
@@ -344,7 +348,7 @@ if ~lh5.Success
     eventmarker(55) % Early Answer
     return
 else
-    if training_rewards(5), goodmonkey(solenoid_time, 'numreward', little_drops); end
+    if training_rewards(5), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', little_drops); end, end
 end
 
 % scene 6a: Double saccade prevention
@@ -378,7 +382,7 @@ end
 if target==mul6.ChosenTarget
     if TrialRecord.User.CL
         trialerror(9); % Correct CL trial
-        if ismember(TrialRecord.CurrentCondition,[2 4 5 8])
+        if ismember(TrialRecord.CurrentCondition,[2 4 5 8]) % Test for early/ late trial
             idle(decision_trace_time + late_reward_delay, [],71)
         else
             idle(decision_trace_time,[], 70)
@@ -386,7 +390,7 @@ if target==mul6.ChosenTarget
         goodmonkey(solenoid_time, 'numreward', big_drops, 'pausetime', drop_gaps, 'eventmarker',99);
     else
         trialerror(0); % Correct
-        if ismember(TrialRecord.CurrentCondition,[2 4 5 8])
+        if ismember(TrialRecord.CurrentCondition,[2 4 5 8]) % Test for early/ late trial 
             idle(decision_trace_time + late_reward_delay, [],71)
         else
             idle(decision_trace_time,[], 70)
