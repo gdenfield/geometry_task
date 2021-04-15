@@ -65,13 +65,13 @@ conditions =... %Context 1: rows 1-4, Context 2: rows 5-8
 
 % Randomly select block if first trial
 if isempty(TrialRecord.TrialErrors)
-    first_context = 1;%randi([1,2]);
+    first_context = randi([1,2]);
     context = first_context;
     TrialRecord.User.SC = 0; % for first call
 end
 
 % Switch Procedure
-block_length = 100000; % Number of trials before context switch
+block_length = 200; % Number of trials before context switch
 if TrialRecord.CurrentTrialWithinBlock >= block_length || TrialRecord.User.switch == 1
     if TrialRecord.User.SC_trials(end)
         TrialRecord.User.SC = 0;
@@ -80,9 +80,12 @@ if TrialRecord.CurrentTrialWithinBlock >= block_length || TrialRecord.User.switc
             switch context
                 case 1
                     context = 2;
+                    condition_incorrect(1:4) = 0;
                 case 2
                     context = 1;
+                    condition_incorrect(5:8) = 0;
             end
+            CL_counter(1) = 0; % Reset CL counter if block switch occurs
             TrialRecord.User.switch = 0;
         end
     else
