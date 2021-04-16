@@ -73,8 +73,8 @@ end
 % Switch Procedure
 block_length = 200; % Number of trials before context switch
 if TrialRecord.CurrentTrialWithinBlock >= block_length || TrialRecord.User.switch == 1
-    if TrialRecord.User.SC_trials(end)
-        TrialRecord.User.SC = 0;
+    if TrialRecord.User.SC_trials(end) && ismember(TrialRecord.TrialErrors(end), [0 1 2 3 8 9]) % If just completed SC trial
+        TrialRecord.User.SC = 0; % Don't give SC trial, but determine if switch will occur
         switch_test = randi([0,1]);
         if switch_test
             switch context
@@ -85,10 +85,9 @@ if TrialRecord.CurrentTrialWithinBlock >= block_length || TrialRecord.User.switc
                     context = 1;
                     condition_incorrect(5:8) = 0;
             end
-            CL_counter(1) = 0; % Reset CL counter if block switch occurs
             TrialRecord.User.switch = 0;
         end
-    else
+    else % Give SC trial
         TrialRecord.User.SC = 1;
     end
 end
@@ -139,6 +138,13 @@ try
 catch
 end
 
+try % Reset CL_counter if switch occurred
+    if switch_test
+        CL_counter(1) = 0;
+    end
+catch
+end
+
 %Enter CL if criteria are met
 if CL_counter(1) ~= 0
     condition = CL_counter(2);
@@ -165,7 +171,7 @@ TrialRecord.User.CL_trials = CL_trials;
 
 %Adjust contrast on instructed trials within CL
 if CL_errors >= instructed_threshold
-    contrast = TrialRecord.User.contrast - 0.15;
+    contrast = TrialRecord.User.contrast - 0.2;
 %       %To reset counter after correct CL trials
 %     if TrialRecord.TrialErrors(end) == 9
 %         CL_errors = 0;
