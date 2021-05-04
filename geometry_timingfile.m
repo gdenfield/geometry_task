@@ -1,7 +1,10 @@
 if ~exist('eye_','var'), error('This task requires eye signal input. Please set it up or try the simulation mode.'); end
 hotkey('x', 'escape_screen(); assignin(''caller'',''continue_'',false);');
 hotkey('s', 'TrialRecord.User.switch = 1;'); % press 's' key during task to manually trigger context switch (with SC trials)
-
+hotkey('d', 'TrialRecord.User.block_length = TrialRecord.User.block_length * 2;'); % press 'd' to double block length
+hotkey('h', 'TrialRecord.User.block_length = TrialRecord.User.block_length / 2;'); % press 'h' to half block length
+hotkey('u', 'if TrialRecord.User.contrast < 1, TrialRecord.User.contrast = TrialRecord.User.contrast + 0.01; disp(sprintf("Off-Target Contrast: %.2f", TrialRecord.User.contrast));, end'); % press 'u' to increase contrast
+hotkey('j', 'if TrialRecord.User.contrast > 0, TrialRecord.User.contrast = TrialRecord.User.contrast - 0.01; disp(sprintf("Off-Target Contrast: %.2f", TrialRecord.User.contrast));, end'); % press 'j' to decrease contrast
 
 % Behavioral Codes
 bhv_code(...
@@ -20,8 +23,8 @@ bhv_code(...
     62,'Making Choice',...
     65,'Break Choice',...
     66,'Choice Made',...
-    70,'Pre-Reward, Early',...
-    71,'Pre-Reward, Late',...
+    70,'Pre-Reward, Large',...
+    71,'Pre-Reward, Small',...
     99,'Reward'); 
 
 % Error Codes
@@ -50,17 +53,17 @@ editable(...
     'max_decision_time',...
     'decision_fix_time',...
     'decision_trace_time',...
-    'late_reward_delay',...
+    'small_reward_delay',...
     'double_thresh',...
     'blink_time',...
     'solenoid_time',...
     'big_drops',...
+    'little_drops',...
     'drop_gaps',...
     'training_rewards',...
     'training_reward_prob',...
     'time_out',...
-    'n_cc_trials',...
-    'off_target_contrast');
+    'n_cc_trials');
 
 
 TrialRecord.MarkSkippedFrames = true; % Records eventcode 13 as skipped frames
@@ -68,7 +71,7 @@ TrialRecord.MarkSkippedFrames = true; % Records eventcode 13 as skipped frames
 persistent CC_trials
 persistent SC_trials
 persistent None_trials
-persistent reward_count
+persistent rewarded_count
 persistent directions
 
 if isempty(CC_trials)
@@ -78,13 +81,13 @@ if isempty(CC_trials)
     directions = [];
 end
 
-if isempty(reward_count)
-    reward_count = 0;
+if isempty(rewarded_count)
+    rewarded_count = 0;
 else
-    reward_count = [reward_count (reward_count(end) + sum(TrialRecord.LastTrialCodes.CodeNumbers==99))];
+    rewarded_count = [rewarded_count (sum(TrialRecord.TrialErrors==0) + sum(TrialRecord.TrialErrors==9))];
 end
 
-TrialRecord.User.reward_count = reward_count;
+TrialRecord.User.rewarded_count = rewarded_count;
 dashboard(3, ['Rewarded Trials: ' num2str(sum(TrialRecord.TrialErrors==0) + sum(TrialRecord.TrialErrors==9)) ', Completed Trials: ' num2str(sum(TrialRecord.TrialErrors==0) + sum(TrialRecord.TrialErrors==1) + sum(TrialRecord.TrialErrors==2) + sum(TrialRecord.TrialErrors==3) + sum(TrialRecord.TrialErrors==8) + sum(TrialRecord.TrialErrors==9))], [0 255 255]);
 
 % PARAMETERS
@@ -100,17 +103,15 @@ double_thresh = 50; % threshold to prevent double saccades
 blink_time = 200; % threshold for loose hold breaks (for blinking)
 decision_fix_time = 100; % time to register choice
 decision_trace_time = 300; % period before reward delivery
-late_reward_delay = 500; % additional delay for late reward trials
+small_reward_delay = 500; % additional delay for small reward trials
 time_out = 2000; % increased ITI for wrong answers
 
 % Training variables:
 weight = NaN;
 TrialRecord.User.weight = weight;
 fix_radius = 2.5; % degrees
-performance_window = 50; % compute running HR based on n trials back
+performance_window = 20; % compute running HR based on n trials back
 n_cc_trials = 10; % # trials to show context cue independent of performance
-off_target_contrast = 1;
-TrialRecord.User.contrast = off_target_contrast;
 
 % Reward variables:
 training_rewards = [0 0 0 0 0]; % change to 1 to turn on training rewards for given scene (1-5)
@@ -281,6 +282,7 @@ end
 direction_count = [sum(directions==1) sum(directions==2) sum(directions==3) sum(directions==4)];
 dashboard(5, ['Choices [Up Right Down Left]: ' num2str(direction_count)], [255 255 0]); 
 dashboard(7, sprintf('Percent Early Choices: %.2f', sum(TrialRecord.TrialErrors==6)/length(TrialRecord.TrialErrors)*100),[255 0 0]); 
+dashboard(8, sprintf('Block Length: %.f', TrialRecord.User.block_length), [255 255 0]);
 
 directions = [directions 0];
 
@@ -352,7 +354,7 @@ else
 end
 
 % scene 6a: Double saccade prevention
-run_scene(scene6a, 60); % Go cue
+go = run_scene(scene6a, 60); % Go cue
 if ~wth6a.Success % Saccade initiated
     eventmarker(61)
 else
@@ -360,9 +362,9 @@ else
 end
 
 % scene 6: choice
-run_scene(scene6, 62);
-rt = mul6.AcquiredTime;    
-
+saccade_initiated = run_scene(scene6, 62);
+rt = saccade_initiated - go;
+disp(rt)
 if ~mul6.Waiting
     eventmarker(66) % Choice Made 
 end
@@ -382,20 +384,22 @@ end
 if target==mul6.ChosenTarget
     if TrialRecord.User.CL
         trialerror(9); % Correct CL trial
-        if ismember(TrialRecord.CurrentCondition,[2 4 5 8]) % Test for early/ late trial
-            idle(decision_trace_time + late_reward_delay, [],71)
+        if ismember(TrialRecord.CurrentCondition,[2 4 5 8]) % Test for large/ small trial
+            idle(decision_trace_time + small_reward_delay, [],71)
+            goodmonkey(solenoid_time, 'numreward', little_drops, 'pausetime', drop_gaps, 'eventmarker',99);
         else
             idle(decision_trace_time,[], 70)
+            goodmonkey(solenoid_time, 'numreward', big_drops, 'pausetime', drop_gaps, 'eventmarker',99);
         end
-        goodmonkey(solenoid_time, 'numreward', big_drops, 'pausetime', drop_gaps, 'eventmarker',99);
     else
         trialerror(0); % Correct
-        if ismember(TrialRecord.CurrentCondition,[2 4 5 8]) % Test for early/ late trial 
-            idle(decision_trace_time + late_reward_delay, [],71)
+        if ismember(TrialRecord.CurrentCondition,[2 4 5 8]) % Test for large/ small trial 
+            idle(decision_trace_time + small_reward_delay, [],71)
+            goodmonkey(solenoid_time, 'numreward', little_drops, 'pausetime', drop_gaps, 'eventmarker',99);
         else
             idle(decision_trace_time,[], 70)
+            goodmonkey(solenoid_time, 'numreward', big_drops, 'pausetime', drop_gaps, 'eventmarker',99);
         end
-        goodmonkey(solenoid_time, 'numreward', big_drops, 'pausetime', drop_gaps, 'eventmarker',99);
     end
     
     %Code Direction - Correct

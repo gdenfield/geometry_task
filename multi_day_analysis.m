@@ -17,7 +17,7 @@ for i = 1:length(files)
     tic
     disp(['Processing file ' num2str(i) ' of ' num2str(length(files))])
     dates{i} = [files{i}(3:4) '/' files{i}(5:6)];
-    partitions = load_data([path files{i}]);
+    partitions = parse_data([path files{i}]);
     
     performance.completed(i) = sum(partitions.all_completed);
     performance.HR(i) = hit_rate(partitions.trials);

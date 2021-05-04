@@ -1,20 +1,19 @@
 function performance_monitor(TrialRecord)
     n = 300; % Change to monitor n trials back
-    window = 50; % number of trials in running HR
-    mL_per_drop = 0.13; %Make sure agrees with daily_report.mlx
+    window = 20; % number of trials in running HR
     
     if TrialRecord.CurrentTrialNumber > n
         trials = TrialRecord.TrialErrors(end-n:end);
         blocks = TrialRecord.BlocksPlayed(end-n:end);
         trial_number = TrialRecord.CurrentTrialNumber-n:TrialRecord.CurrentTrialNumber;
         CC_trials = TrialRecord.User.CC_trials(end-n:end);
-        RC = TrialRecord.User.reward_count(end-n:end)*mL_per_drop;
+        RC = TrialRecord.User.rewarded_count(end-n:end);
     else
         trials = TrialRecord.TrialErrors;
         blocks = TrialRecord.BlocksPlayed;
         trial_number = 1:TrialRecord.CurrentTrialNumber;
         CC_trials = TrialRecord.User.CC_trials;
-        RC = TrialRecord.User.reward_count*mL_per_drop;
+        RC = TrialRecord.User.rewarded_count;
     end
         
     %Error Type
@@ -76,8 +75,7 @@ function performance_monitor(TrialRecord)
             running_RR(j) = RC(end)/j;
         end
     end
-    clc;
-    fprintf([num2str(window) '-Trial RR: %.3f\n'], running_RR(end));
+    %fprintf([num2str(window) '-Trial RR: %.3f\n'], running_RR(end));
     plot(trial_number, running_HR,'-k')
     plot(trial_number, running_RR,'-b')
     yline(hit_rate(TrialRecord.TrialErrors),'--k')

@@ -2,9 +2,10 @@ function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,Tri
 %MJP 11/11/2020
 
 % Training variables
+block_length = 3000; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
 CL_threshold = -3; % Number of errors for a given condition before starting correction loop
-CL_depth = 3; % Number of times condition will be repeated in CL
+CL_depth = 1; % Number of times condition will be repeated in CL
 n_fractals = 4; % 1-4, set to 4 for full set of fractals
 %training = 5; % 1-8, SINGLE-CONDITION TRAINING, SEE CAPS COMMENT BELOW TOO!!
 instructed_threshold = 5; % Adjust contrast after threshold errors in a row, only in CL
@@ -23,7 +24,6 @@ persistent CL_errors % counts mistakes within correction loop
 persistent CL_trials
 persistent first_context
 persistent context
-persistent block_length
 persistent timing_filename_returned
 if isempty(condition_correct) || TrialRecord.BlockChange %Reset counters if start of session or block change happened
     condition_correct = zeros(1,2*n_fractals);
@@ -35,6 +35,7 @@ if isempty(condition_correct) || TrialRecord.BlockChange %Reset counters if star
     CL_trials = [];
     TrialRecord.User.contrast = 1;
     TrialRecord.User.switch = 0;
+    TrialRecord.User.block_length = block_length;
 end
 if isempty(timing_filename_returned)
     timing_filename_returned = true;
@@ -52,7 +53,7 @@ right = [target_distance 0];
 down = [0 -target_distance];
 left = [-target_distance 0];
 
-image_list = {'stim_6.png','stim_8.png','stim_13.png', 'stim_17.png', 'cc_1.png', 'cc_2.png'};
+image_list = {'stim_21.png','stim_81.png','stim_82.png', 'stim_95.png', 'cc_1.png', 'cc_2.png'};
 conditions =... %Context 1: rows 1-4, Context 2: rows 5-8
    [1 5 up right down left;  % [stimulus ctx_cue target off_target1 off_target2 off_target3]
     3 5 down left up right;  % off_target1 = correct in other context
@@ -65,14 +66,14 @@ conditions =... %Context 1: rows 1-4, Context 2: rows 5-8
 
 % Randomly select block if first trial
 if isempty(TrialRecord.TrialErrors)
-    first_context = randi([1,2]);
+    first_context = 1;%randi([1,2]);
     context = first_context;
     TrialRecord.User.SC = 0; % for first call
 end
 
 % Switch Procedure
-block_length = 200; % Number of trials before context switch
-if TrialRecord.CurrentTrialWithinBlock >= block_length || TrialRecord.User.switch == 1
+disp(['Trials Left in Block: ' num2str(TrialRecord.User.block_length - TrialRecord.CurrentTrialWithinBlock)])
+if TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length || TrialRecord.User.switch == 1
     if TrialRecord.User.SC_trials(end) && ismember(TrialRecord.TrialErrors(end), [0 1 2 3 8 9]) % If just completed SC trial
         TrialRecord.User.SC = 0; % Don't give SC trial, but determine if switch will occur
         switch_test = randi([0,1]);
@@ -138,9 +139,10 @@ try
 catch
 end
 
-try % Reset CL_counter if switch occurred
+try % Reset CL_counter and CL_errors if switch occurred during CL
     if switch_test
-        CL_counter(1) = 0;
+        CL_counter = [0 0];
+        CL_errors = 0;
     end
 catch
 end
