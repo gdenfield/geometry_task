@@ -105,6 +105,7 @@ decision_fix_time = 100; % time to register choice
 decision_trace_time = 300; % period before reward delivery
 small_reward_delay = 500; % additional delay for small reward trials
 time_out = 2000; % increased ITI for wrong answers
+to_multiplier = 1; % time_out multiplier for small reward condition
 
 % Training variables:
 weight = NaN;
@@ -412,13 +413,22 @@ if target==mul6.ChosenTarget
     elseif TrialRecord.CurrentCondition == 4 || TrialRecord.CurrentCondition == 6
         directions(end) = 4;
     end
+    
 elseif off_target1==mul6.ChosenTarget
     if TrialRecord.User.CL
         trialerror(8); % Incorrect CL trial
-        idle(time_out)
+        if ismember(TrialRecord.CurrentCondition,[2 4 5 8])
+            idle(to_multiplier*time_out)
+        else
+            idle(time_out)
+        end
     else
-        idle(time_out)
         trialerror(1); % Incorrect, correct in other context
+        if ismember(TrialRecord.CurrentCondition,[2 4 5 8])
+            idle(to_multiplier*time_out)
+        else
+            idle(time_out)
+        end
     end
     
     %Code Direction - Other Context
@@ -431,13 +441,22 @@ elseif off_target1==mul6.ChosenTarget
     elseif TrialRecord.CurrentCondition == 4 || TrialRecord.CurrentCondition == 5
         directions(end) = 1;
     end
+    
 elseif off_target2==mul6.ChosenTarget
     if TrialRecord.User.CL
         trialerror(8); % Incorrect CL trial
-        idle(time_out)
+        if ismember(TrialRecord.CurrentCondition,[2 4 5 8])
+            idle(to_multiplier*time_out)
+        else
+            idle(time_out)
+        end
     else
-        idle(time_out)
         trialerror(2) % Incorrect, across FP from target
+        if ismember(TrialRecord.CurrentCondition,[2 4 5 8])
+            idle(to_multiplier*time_out)
+        else
+            idle(time_out)
+        end
     end
     
     %Code Direction - Across
@@ -450,13 +469,22 @@ elseif off_target2==mul6.ChosenTarget
     elseif TrialRecord.CurrentCondition == 4 || TrialRecord.CurrentCondition == 6
         directions(end) = 2;
     end
+    
 elseif off_target3==mul6.ChosenTarget
     if TrialRecord.User.CL
         trialerror(8); % Incorrect CL trial
-        idle(time_out)
+        if ismember(TrialRecord.CurrentCondition,[2 4 5 8])
+            idle(to_multiplier*time_out)
+        else
+            idle(time_out)
+        end
     else
-        idle(time_out)
         trialerror(3) % Incorrect, random guess
+        if ismember(TrialRecord.CurrentCondition,[2 4 5 8])
+            idle(to_multiplier*time_out)
+        else
+            idle(time_out)
+        end
     end
     
     %Code Direction - Random
