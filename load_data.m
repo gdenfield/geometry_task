@@ -61,6 +61,10 @@ s6 = conditions == 6;
 s7 = conditions == 7;
 s8 = conditions == 8;
 
+% Reward Contingencies
+r1 = logical(s2 + s4 + s5 + s8); % small
+r2 = logical(s1 + s3 + s6 + s7); % large
+
 % Directions - By Code
 up = directions == 1;
 right = directions == 2;

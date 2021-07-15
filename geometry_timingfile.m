@@ -267,13 +267,50 @@ scene6 = create_scene(con6,[target off_target1 off_target2 off_target3]);
 
 % TASK:
 %Dashboard settings
+allTrials = TrialRecord.TrialErrors;
+blocks = TrialRecord.BlocksPlayed;
+conditions = TrialRecord.ConditionsPlayed;
+
+% Contexts
+c1 = blocks == 1;
+c2 = blocks == 2;
+
+% Conditions
+s1 = conditions == 1;
+s2 = conditions == 2;
+s3 = conditions == 3;
+s4 = conditions == 4;
+s5 = conditions == 5;
+s6 = conditions == 6;
+s7 = conditions == 7;
+s8 = conditions == 8;
+
+% Reward Contingencies
+r1 = logical(s2 + s4 + s5 + s8); % small
+r2 = logical(s1 + s3 + s6 + s7); % large
+
 try
-    running_HR = hit_rate(TrialRecord.TrialErrors(end-performance_window:end));
+    windowTrials = TrialRecord.TrialErrors(end-performance_window:end);
 catch
-    running_HR = hit_rate(TrialRecord.TrialErrors);
+    windowTrials = TrialRecord.TrialErrors;
 end
 
-dashboard(1, sprintf([num2str(performance_window) '-Trial HR: %.2f, Overall HR: %.2f'], running_HR*100, hit_rate(TrialRecord.TrialErrors)*100));
+running_HR = hit_rate(windowTrials);
+
+ctx1_HR = hit_rate(allTrials(c1));
+ctx2_HR = hit_rate(allTrials(c2));
+s1_HR = hit_rate(allTrials(s1));
+s2_HR = hit_rate(allTrials(s2));
+s3_HR = hit_rate(allTrials(s3));
+s4_HR = hit_rate(allTrials(s4));
+s5_HR = hit_rate(allTrials(s5));
+s6_HR = hit_rate(allTrials(s6));
+s7_HR = hit_rate(allTrials(s7));
+s8_HR = hit_rate(allTrials(s8));
+
+disp(table([ctx1_HR; ctx2_HR], [s1_HR; s5_HR], [s2_HR; s6_HR], [s3_HR; s7_HR], [s4_HR; s8_HR],'VariableNames',{'Combined', 'F1', 'F2', 'F3', 'F4'},'RowNames',{'C1','C2'}));
+
+dashboard(1, sprintf([num2str(performance_window) '-Trial HR: %.2f, Overall HR: %.2f'], running_HR*100, hit_rate(allTrials)*100));
 if TrialRecord.User.CL
     dashboard(4, 'Correction Loop!', [255 0 0])
 else
@@ -365,7 +402,7 @@ end
 % scene 6: choice
 saccade_initiated = run_scene(scene6, 62);
 rt = saccade_initiated - go;
-disp(rt)
+disp(['RT: ' num2str(rt)]);
 if ~mul6.Waiting
     eventmarker(66) % Choice Made 
 end

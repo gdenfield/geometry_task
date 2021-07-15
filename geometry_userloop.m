@@ -4,7 +4,7 @@ function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,Tri
 % Training variables
 block_length = 3000; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
-CL_threshold = -3; % Number of errors for a given condition before starting correction loop
+CL_threshold = -1; % Number of errors for a given condition before starting correction loop
 CL_depth = 1; % Number of times condition will be repeated in CL
 n_fractals = 4; % 1-4, set to 4 for full set of fractals
 %training = 5; % 1-8, SINGLE-CONDITION TRAINING, SEE CAPS COMMENT BELOW TOO!!
@@ -99,14 +99,16 @@ try
         condition_correct(TrialRecord.CurrentCondition) = condition_correct(TrialRecord.CurrentCondition)+1;
         correct_counts(TrialRecord.CurrentCondition) = correct_counts(TrialRecord.CurrentCondition)+1;
         condition_incorrect(TrialRecord.CurrentCondition) = 0; % Reset incorrect count if correct trial is performed, remove this line to have cumulative CL criteria
-        disp(['condition correct: ' num2str(condition_correct)])
     elseif ismember(TrialRecord.TrialErrors(end), [1 2 3]) && CL_counter(1)==0
-        condition_incorrect(TrialRecord.CurrentCondition) = condition_incorrect(TrialRecord.CurrentCondition)-1;
+        condition_correct(TrialRecord.CurrentCondition) = condition_correct(TrialRecord.CurrentCondition)-1;
+        %condition_incorrect(TrialRecord.CurrentCondition) = condition_incorrect(TrialRecord.CurrentCondition)-1;
         incorrect_counts(TrialRecord.CurrentCondition) = incorrect_counts(TrialRecord.CurrentCondition)-1;
-        disp(['condition incorrect: ' num2str(condition_incorrect)])
-        disp(['incorrect counts: ' num2str(incorrect_counts)])
     end
     
+disp(['condition correct: ' num2str(condition_correct)])
+%disp(['condition incorrect: ' num2str(condition_incorrect)])
+disp(['incorrect counts: ' num2str(incorrect_counts)])
+
     %Initiate CL, if needed
     if condition_incorrect(TrialRecord.CurrentCondition) == CL_threshold
         condition_incorrect(TrialRecord.CurrentCondition) = 0; % Reset error count
