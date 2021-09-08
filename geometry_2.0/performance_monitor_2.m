@@ -61,9 +61,9 @@ function performance_monitor_2(TrialRecord)
     running_HR = zeros(length(trials),1);
     for j = 1:length(trials)
         try
-            running_HR(j) = hit_rate(trials(j-window:end));
+            running_HR(j) = hit_rate_2(trials(j-window:end));
         catch
-            running_HR(j) = hit_rate(trials(1:j));
+            running_HR(j) = hit_rate_2(trials(1:j));
         end
     end
     
@@ -78,7 +78,7 @@ function performance_monitor_2(TrialRecord)
     %fprintf([num2str(window) '-Trial RR: %.3f\n'], running_RR(end));
     plot(trial_number, running_HR,'-k')
     plot(trial_number, running_RR,'-b')
-    yline(hit_rate(TrialRecord.TrialErrors),'--k')
+    yline(hit_rate_2(TrialRecord.TrialErrors),'--k')
     ylim([0 1])
    
     xticks('auto')

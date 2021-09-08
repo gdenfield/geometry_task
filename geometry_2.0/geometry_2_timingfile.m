@@ -69,11 +69,13 @@ persistent CC_trials
 persistent SC_trials
 persistent None_trials
 persistent correct_count
+persistent directions
 
 if isempty(CC_trials)
     CC_trials = [];
     SC_trials = [];
     None_trials = [];
+    directions = [];
 end
 
 if isempty(correct_count)
@@ -116,7 +118,7 @@ little_drops = 1; %number of pulses
 big_drops = 2; %number of pulses
 
 % TaskObjects defined in the conditions file:
-switch_cue = 1;
+sc_color = [90 90 90];
 fixation_point = 2;
 FP_background = 3;
 stimulus = 4;
@@ -262,29 +264,29 @@ else
     windowTrials = TrialRecord.TrialErrors(end-performance_window:end);
 end
 
-running_HR = hit_rate(windowTrials);
+running_HR = hit_rate_2(windowTrials);
 
-ctx1_HR = hit_rate(allTrials(c1));
-ctx2_HR = hit_rate(allTrials(c2));
-s1_HR = hit_rate(allTrials(s1));
-s2_HR = hit_rate(allTrials(s2));
-s3_HR = hit_rate(allTrials(s3));
-s4_HR = hit_rate(allTrials(s4));
-s5_HR = hit_rate(allTrials(s5));
-s6_HR = hit_rate(allTrials(s6));
-s7_HR = hit_rate(allTrials(s7));
-s8_HR = hit_rate(allTrials(s8));
+ctx1_HR = hit_rate_2(allTrials(c1));
+ctx2_HR = hit_rate_2(allTrials(c2));
+s1_HR = hit_rate_2(allTrials(s1));
+s2_HR = hit_rate_2(allTrials(s2));
+s3_HR = hit_rate_2(allTrials(s3));
+s4_HR = hit_rate_2(allTrials(s4));
+s5_HR = hit_rate_2(allTrials(s5));
+s6_HR = hit_rate_2(allTrials(s6));
+s7_HR = hit_rate_2(allTrials(s7));
+s8_HR = hit_rate_2(allTrials(s8));
 
 disp(table([ctx1_HR; ctx2_HR], [s1_HR; s5_HR], [s2_HR; s6_HR], [s3_HR; s7_HR], [s4_HR; s8_HR],'VariableNames',{'Combined', 'F1', 'F2', 'F3', 'F4'},'RowNames',{'C1','C2'}));
 
-dashboard(1, sprintf([num2str(performance_window) '-Trial HR: %.2f, Overall HR: %.2f'], running_HR*100, hit_rate(allTrials)*100));
-dashboard(7, sprintf('Percent Early Choices: %.2f', sum(TrialRecord.TrialErrors==6)/length(TrialRecord.TrialErrors)*100),[255 0 0]); 
+dashboard(1, sprintf([num2str(performance_window) '-Trial HR: %.2f, Overall HR: %.2f'], running_HR*100, hit_rate_2(allTrials)*100));
+dashboard(7, sprintf('Percent Early Choices: %.2f', sum(TrialRecord.TrialErrors==7)/length(TrialRecord.TrialErrors)*100),[255 0 0]); 
 dashboard(8, sprintf('Block Length: %.f', TrialRecord.User.block_length), [255 255 0]);
 
 % scene 1: fixation
 if TrialRecord.User.SC
     SC_trials = [SC_trials 1];
-    set_bgcolor([100 100 100]);   % change the background color to grey as SC
+    set_bgcolor([sc_color]);   % change the background color to grey as SC
 else
     SC_trials = [SC_trials 0];
     set_bgcolor([]);
@@ -295,8 +297,10 @@ if ~wth1.Success
     idle(0);
     if wth1.Waiting
         trialerror(5); % No Fixation
+        directions = [directions 0];
     else
         trialerror(6); % Break Fixation
+        directions = [directions 0];
         eventmarker(46);
     end
     return
@@ -311,6 +315,7 @@ run_scene(scene2,20);
 if ~lh2.Success
     idle(0);
     trialerror(6); % Break Fixation
+    directions = [directions 0];
     eventmarker(46);
     return
 else
@@ -322,6 +327,7 @@ run_scene(scene3,30);
 if ~lh3.Success
     idle(0);
     trialerror(6); % Break Fixation
+    directions = [directions 0];
     eventmarker(46);
     return
 else
@@ -338,6 +344,7 @@ end
 if ~lh4.Success
     idle(0);
     trialerror(6); % Break Fixation
+    directions = [directions 0];
     eventmarker(46);
     return
 else
@@ -349,6 +356,7 @@ run_scene(scene5, 50);
 if ~lh5.Success
     idle(0);
     trialerror(7); % Early Answer
+    directions = [directions 0];
     eventmarker(55) % Early Answer
     return
 else
@@ -361,6 +369,7 @@ if ~wth6a.Success % Saccade initiated
     eventmarker(61)
 else
     trialerror(8); % No Choice
+    directions = [directions 0];
 end
 
 % scene 6: choice
@@ -374,37 +383,55 @@ if ~mul6.Success
     idle(0);
     if mul6.Waiting
         trialerror(9); % Double saccade
+        directions = [directions 0];
     else
         trialerror(9); % Break Choice
+        directions = [directions 0];
         eventmarker(65)
     end
     return
 end
 
 % Rewards
-
 trial_correct = (ismember(TrialRecord.CurrentCondition, [1 8]) && mul6.ChosenTarget == up) || (ismember(TrialRecord.CurrentCondition, [2 5]) && mul6.ChosenTarget == right) || (ismember(TrialRecord.CurrentCondition, [3 6]) && mul6.ChosenTarget == down) || (ismember(TrialRecord.CurrentCondition, [4 7]) && mul6.ChosenTarget == left);
 
 if trial_correct
     trialerror(0);
-    if ismember(TrialRecord.CurrentCondition,[2 4 5 8]) % Test for large/ small trial 
+    
+    if ismember(TrialRecord.CurrentCondition,[1 8])
+        directions = [directions 1];
+    elseif ismember(TrialRecord.CurrentCondition,[2 5])
+        directions = [directions 2];
+    elseif ismember(TrialRecord.CurrentCondition,[3 6])
+        directions = [directions 3];
+    elseif ismember(TrialRecord.CurrentCondition,[4 7])
+        directions = [directions 4];
+    end
+    
+    if ismember(TrialRecord.CurrentCondition,[2 4 5 8]) % Test for large/ small trial
         idle(decision_trace_time, [],71)
         goodmonkey(solenoid_time, 'numreward', little_drops, 'pausetime', drop_gaps, 'eventmarker',99);
     else
         idle(decision_trace_time,[], 70)
         goodmonkey(solenoid_time, 'numreward', big_drops, 'pausetime', drop_gaps, 'eventmarker',99);
     end
+    
 elseif mul6.ChosenTarget == up
     trialerror(1);
+    directions = [directions 1];
     idle(time_out);
 elseif mul6.ChosenTarget == right
     trialerror(2);
+    directions = [directions 2];
     idle(time_out);
 elseif mul6.ChosenTarget == down
     trialerror(3);
+    directions = [directions 3];
     idle(time_out);
 elseif mul6.ChosenTarget == left
     trialerror(4);
-    idle(time_out);
-end   
-           
+    directions = [directions 4];
+    idle(time_out);    
+end
+
+TrialRecord.User.directions = directions;           
