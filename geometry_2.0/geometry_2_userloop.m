@@ -11,6 +11,7 @@ C = [];
 timingfile = 'geometry_2_timingfile.m';
 userdefined_trialholder = '';
 persistent trials_left_in_sequence % number of time each fractal has been completed successfully
+persistent CL_trials % index of CL trials
 persistent correct_counts % running tally correct of answers
 persistent incorrect_counts % running tally of incorrect answers
 persistent first_context
@@ -20,6 +21,7 @@ if isempty(trials_left_in_sequence) || TrialRecord.BlockChange %Reset counters i
     trials_left_in_sequence = sequence_depth + zeros(1,2*n_fractals);
     correct_counts = zeros(1,2*n_fractals);
     incorrect_counts = zeros(1,2*n_fractals);
+    CL_trials = 0;
     TrialRecord.User.contrast = 1;
     TrialRecord.User.switch = 0;
     TrialRecord.User.block_length = block_length;
@@ -58,7 +60,6 @@ end
 
 % Switch Procedure
 if TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length || TrialRecord.User.switch == 1
-    %sc_color = [160 160 160];
     TrialRecord.User.SC = 1; % Don't give SC trial, but determine if switch will occur
     switch_test = randi([0,1]);
     if switch_test
@@ -72,7 +73,6 @@ if TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length || Trial
         TrialRecord.User.switch = 0;
     end
 else
-    %sc_color = [255 255 255];
     TrialRecord.User.SC = 0;
 end
 
@@ -81,9 +81,19 @@ if ~isempty(TrialRecord.TrialErrors)
     if TrialRecord.TrialErrors(end)==0
         trials_left_in_sequence(TrialRecord.CurrentCondition) = trials_left_in_sequence(TrialRecord.CurrentCondition)-1;
         correct_counts(TrialRecord.CurrentCondition) = correct_counts(TrialRecord.CurrentCondition)+1;
+        CL_trials = [CL_trials 0];
+        disp('Correct!')
     elseif ismember(TrialRecord.TrialErrors(end), [1 2 3 4])
-        trials_left_in_sequence(TrialRecord.CurrentCondition) = trials_left_in_sequence(TrialRecord.CurrentCondition)+1;
+        %trials_left_in_sequence(TrialRecord.CurrentCondition) = trials_left_in_sequence(TrialRecord.CurrentCondition)+1;
         incorrect_counts(TrialRecord.CurrentCondition) = incorrect_counts(TrialRecord.CurrentCondition)+1;
+        CL_trials = [CL_trials 1];
+        disp('CL Trial!')
+    elseif CL_trials(end) == 1 % add to CL_trial vector for incomplete trials
+        CL_trials = [CL_trials 1];
+        disp('Still CL Trial!')
+    else
+        CL_trials = [CL_trials 0];
+        disp('Not CL Trial')
     end
 end
     
@@ -97,11 +107,16 @@ if sum(trials_left_in_sequence(1,(1:4)+( (context - 1) * 4))) == 0
 end
 
 %Pick fractal
-while true
+if CL_trials(end) == 1 % if CL trial, repeat condition
+    condition = TrialRecord.ConditionsPlayed(end);
+    chosen_condition = conditions(condition,:);
+else % if not CL
+    while true
     condition = randi(n_fractals)+((context-1)*4);
     if trials_left_in_sequence(condition) ~= 0
         chosen_condition = conditions(condition,:);
         break
+    end
     end
 end
 
@@ -111,76 +126,69 @@ stimulus = image_list{chosen_condition(1)};
 ctx_cue = image_list{chosen_condition(2)};
 
 % TaskObjects:
-%1: switch_cue
+%1: fixation_point
 C(1).Type = 'crc';
-C(1).Radius = 7;     % visual angle
-C(1).Color = [255 0 0];  % [R G B]
+C(1).Radius = 0.1;     % visual angle
+C(1).Color = [255 255 255];  % [R G B]
 C(1).FillFlag = 1;
 C(1).Xpos = 0;
 C(1).Ypos = 0;
 
-%2: fixation_point
+%2: FP_background
 C(2).Type = 'crc';
-C(2).Radius = 0.1;     % visual angle
-C(2).Color = [255 255 255];  % [R G B]
+C(2).Radius = 0.5;     % visual angle
+C(2).Color = [0 0 0];  % [R G B]
 C(2).FillFlag = 1;
 C(2).Xpos = 0;
 C(2).Ypos = 0;
 
-%3: FP_background
-C(3).Type = 'crc';
-C(3).Radius = 0.5;     % visual angle
-C(3).Color = [0 0 0];  % [R G B]
-C(3).FillFlag = 1;
+%3: stimulus
+C(3).Type = 'pic';
+C(3).Name = stimulus;
 C(3).Xpos = 0;
 C(3).Ypos = 0;
+C(3).Colorkey = [0 0 0]; %sets black as transparent
 
-%4: stimulus
+%4: ctx_cue
 C(4).Type = 'pic';
-C(4).Name = stimulus;
+C(4).Name = ctx_cue;
 C(4).Xpos = 0;
 C(4).Ypos = 0;
 C(4).Colorkey = [0 0 0]; %sets black as transparent
 
-%5: ctx_cue
-C(5).Type = 'pic';
-C(5).Name = ctx_cue;
-C(5).Xpos = 0;
-C(5).Ypos = 0;
-C(5).Colorkey = [0 0 0]; %sets black as transparent
+%5: up
+C(5).Type = 'crc';
+C(5).Radius = 0.1;     % visual angle
+C(5).Color = target_color;  % [R G B]
+C(5).FillFlag = 1;
+C(5).Xpos = up(1);
+C(5).Ypos = up(2);
 
-%6: up
+%6: right
 C(6).Type = 'crc';
 C(6).Radius = 0.1;     % visual angle
 C(6).Color = target_color;  % [R G B]
 C(6).FillFlag = 1;
-C(6).Xpos = up(1);
-C(6).Ypos = up(2);
+C(6).Xpos = right(1);
+C(6).Ypos = right(2);
 
-%7: right
+%7: down
 C(7).Type = 'crc';
 C(7).Radius = 0.1;     % visual angle
 C(7).Color = target_color;  % [R G B]
 C(7).FillFlag = 1;
-C(7).Xpos = right(1);
-C(7).Ypos = right(2);
+C(7).Xpos = down(1);
+C(7).Ypos = down(2);
 
-%8: down
+%8: left
 C(8).Type = 'crc';
 C(8).Radius = 0.1;     % visual angle
 C(8).Color = target_color;  % [R G B]
 C(8).FillFlag = 1;
-C(8).Xpos = down(1);
-C(8).Ypos = down(2);
+C(8).Xpos = left(1);
+C(8).Ypos = left(2);
 
-%9: left
-C(9).Type = 'crc';
-C(9).Radius = 0.1;     % visual angle
-C(9).Color = target_color;  % [R G B]
-C(9).FillFlag = 1;
-C(9).Xpos = left(1);
-C(9).Ypos = left(2);
-
+TrialRecord.User.CL_trials = CL_trials;
 TrialRecord.NextBlock = context;
 TrialRecord.NextCondition = condition;
 end

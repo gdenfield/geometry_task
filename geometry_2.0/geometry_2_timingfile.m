@@ -106,7 +106,7 @@ time_out = 2000; % increased ITI for wrong answers
 weight = NaN;
 TrialRecord.User.weight = weight;
 fix_radius = 2.5; % degrees
-performance_window = 20; % compute running HR based on n trials back
+performance_window = 10; % compute running HR based on n trials back
 n_cc_trials = 5; % # trials to show context cue independent of performance
 
 % Reward variables:
@@ -119,14 +119,14 @@ big_drops = 2; %number of pulses
 
 % TaskObjects defined in the conditions file:
 sc_color = [90 90 90];
-fixation_point = 2;
-FP_background = 3;
-stimulus = 4;
-ctx_cue = 5;
-up = 6;
-right = 7;
-down = 8;
-left = 9;
+fixation_point = 1;
+FP_background = 2;
+stimulus = 3;
+ctx_cue = 4;
+up = 5;
+right = 6;
+down = 7;
+left = 8;
 
 %Lick monitor
 aim = AnalogInputMonitor(null_);
@@ -278,6 +278,48 @@ s7_HR = hit_rate_2(allTrials(s7));
 s8_HR = hit_rate_2(allTrials(s8));
 
 disp(table([ctx1_HR; ctx2_HR], [s1_HR; s5_HR], [s2_HR; s6_HR], [s3_HR; s7_HR], [s4_HR; s8_HR],'VariableNames',{'Combined', 'F1', 'F2', 'F3', 'F4'},'RowNames',{'C1','C2'}));
+
+c1t = allTrials(c1);
+c2t = allTrials(c2);
+s1t = allTrials(s1);
+s2t = allTrials(s2);
+s3t = allTrials(s3);
+s4t = allTrials(s4);
+s5t = allTrials(s5);
+s6t = allTrials(s6);
+s7t = allTrials(s7);
+s8t = allTrials(s8);
+
+try
+    ctx1_10 = hit_rate_2(c1t(end-10:end));
+    s1_10 = hit_rate_2(s1t(end-10:end));
+    s2_10 = hit_rate_2(s2t(end-10:end));
+    s3_10 = hit_rate_2(s3t(end-10:end));
+    s4_10 = hit_rate_2(s4t(end-10:end));
+catch
+    ctx1_10 = hit_rate_2(c1t);
+    s1_10 = hit_rate_2(s1t);
+    s2_10 = hit_rate_2(s2t);
+    s3_10 = hit_rate_2(s3t);
+    s4_10 = hit_rate_2(s4t);
+end
+
+try
+    ctx2_10 = hit_rate_2(c2t(end-10:end));
+    s5_10 = hit_rate_2(s5t(end-10:end));
+    s6_10 = hit_rate_2(s6t(end-10:end));
+    s7_10 = hit_rate_2(s7t(end-10:end));
+    s8_10 = hit_rate_2(s8t(end-10:end));
+catch
+    ctx2_10 = hit_rate_2(c2t);
+    s5_10 = hit_rate_2(s5t);
+    s6_10 = hit_rate_2(s6t);
+    s7_10 = hit_rate_2(s7t);
+    s8_10 = hit_rate_2(s8t);
+end
+
+disp('10-trial average')
+disp(table([ctx1_10; ctx2_10], [s1_10; s5_10], [s2_10; s6_10], [s3_10; s7_10], [s4_10; s8_10],'VariableNames',{'Combined', 'F1', 'F2', 'F3', 'F4'},'RowNames',{'C1','C2'}));
 
 dashboard(1, sprintf([num2str(performance_window) '-Trial HR: %.2f, Overall HR: %.2f'], running_HR*100, hit_rate_2(allTrials)*100));
 dashboard(7, sprintf('Percent Early Choices: %.2f', sum(TrialRecord.TrialErrors==7)/length(TrialRecord.TrialErrors)*100),[255 0 0]); 
