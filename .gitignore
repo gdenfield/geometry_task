@@ -1,2 +1,4 @@
 *.bhv2
 *.asv
+*.ipynb
+.DS_Store
