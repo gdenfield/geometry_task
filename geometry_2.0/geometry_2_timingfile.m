@@ -6,6 +6,7 @@ hotkey('h', 'TrialRecord.User.block_length = TrialRecord.User.block_length / 2;'
 
 % Behavioral Codes
 bhv_code(...
+    01,'SC',...
     10,'FP1',...
     11,'Fixation Acquired',...
     20,'Stimulus',...
@@ -101,6 +102,7 @@ blink_time = 200; % threshold for loose hold breaks (for blinking)
 decision_fix_time = 100; % time to register choice
 decision_trace_time = 300; % period before reward delivery
 time_out = 2000; % increased ITI for wrong answers
+sc_duration = 1000;
 
 % Training variables:
 weight = NaN;
@@ -116,9 +118,9 @@ solenoid_time = 200; %ms
 drop_gaps = 0; %ms
 little_drops = 1; %number of pulses
 big_drops = 2; %number of pulses
+training_drops = 1; %number of pulses
 
 % TaskObjects defined in the conditions file:
-sc_color = [90 90 90];
 fixation_point = 1;
 FP_background = 2;
 stimulus = 3;
@@ -127,6 +129,7 @@ up = 5;
 right = 6;
 down = 7;
 left = 8;
+switch_cue = 9;
 
 %Lick monitor
 aim = AnalogInputMonitor(null_);
@@ -138,6 +141,11 @@ tc = TimeCounter(aim);
 tc.Duration = 50000;
 
 % SCENES:
+% scene 0: switch-cue
+tc = TimeCounter(null_);
+tc.Duration = sc_duration;
+scene0 = create_scene(tc, switch_cue);
+
 % scene 1: fixation
 fix1 = SingleTarget(eye_);
 fix1.Target = fixation_point;
@@ -182,15 +190,20 @@ con4 = Concurrent(lh4);
 con4.add(tc);
 
 % Test for CC Trial
-TrialRecord.User.CC = TrialRecord.CurrentTrialWithinBlock<=n_cc_trials;
+TrialRecord.User.CC = TrialRecord.CurrentTrialWithinBlock<=n_cc_trials || TrialRecord.User.SC;
 
 %Build Scene    
 if TrialRecord.User.CC
     CC_trials = [CC_trials 1];
     None_trials = [None_trials 0];
-    dashboard(2, 'CC Trial',[255 0 255])
+    if TrialRecord.User.SC
+        dashboard(2, 'SC Trial', [255 255 0])
+    else
+        dashboard(2, 'CC Trial',[255 0 255])
+    end
     scene4 = create_scene(con4,[fixation_point FP_background ctx_cue]);
-else
+
+    else
     CC_trials = [CC_trials 0];
     None_trials = [None_trials 1];
     dashboard(2, 'None Trial', [255 255 255])
@@ -241,6 +254,7 @@ scene6 = create_scene(con6,[up right down left]);
 % TASK:
 %Dashboard settings
 allTrials = TrialRecord.TrialErrors;
+ncl = ~TrialRecord.User.CL_trials(1:end-1);
 blocks = TrialRecord.BlocksPlayed;
 conditions = TrialRecord.ConditionsPlayed;
 
@@ -266,29 +280,29 @@ end
 
 running_HR = hit_rate_2(windowTrials);
 
-ctx1_HR = hit_rate_2(allTrials(c1));
-ctx2_HR = hit_rate_2(allTrials(c2));
-s1_HR = hit_rate_2(allTrials(s1));
-s2_HR = hit_rate_2(allTrials(s2));
-s3_HR = hit_rate_2(allTrials(s3));
-s4_HR = hit_rate_2(allTrials(s4));
-s5_HR = hit_rate_2(allTrials(s5));
-s6_HR = hit_rate_2(allTrials(s6));
-s7_HR = hit_rate_2(allTrials(s7));
-s8_HR = hit_rate_2(allTrials(s8));
+c1t = allTrials(c1&ncl);
+c2t = allTrials(c2&ncl);
+s1t = allTrials(s1&ncl);
+s2t = allTrials(s2&ncl);
+s3t = allTrials(s3&ncl);
+s4t = allTrials(s4&ncl);
+s5t = allTrials(s5&ncl);
+s6t = allTrials(s6&ncl);
+s7t = allTrials(s7&ncl);
+s8t = allTrials(s8&ncl);
+
+ctx1_HR = hit_rate_2(c1t);
+ctx2_HR = hit_rate_2(c2t);
+s1_HR = hit_rate_2(s1t);
+s2_HR = hit_rate_2(s2t);
+s3_HR = hit_rate_2(s3t);
+s4_HR = hit_rate_2(s4t);
+s5_HR = hit_rate_2(s5t);
+s6_HR = hit_rate_2(s6t);
+s7_HR = hit_rate_2(s7t);
+s8_HR = hit_rate_2(s8t);
 
 disp(table([ctx1_HR; ctx2_HR], [s1_HR; s5_HR], [s2_HR; s6_HR], [s3_HR; s7_HR], [s4_HR; s8_HR],'VariableNames',{'Combined', 'F1', 'F2', 'F3', 'F4'},'RowNames',{'C1','C2'}));
-
-c1t = allTrials(c1);
-c2t = allTrials(c2);
-s1t = allTrials(s1);
-s2t = allTrials(s2);
-s3t = allTrials(s3);
-s4t = allTrials(s4);
-s5t = allTrials(s5);
-s6t = allTrials(s6);
-s7t = allTrials(s7);
-s8t = allTrials(s8);
 
 try
     ctx1_10 = hit_rate_2(c1t(end-10:end));
@@ -328,10 +342,10 @@ dashboard(8, sprintf('Block Length: %.f', TrialRecord.User.block_length), [255 2
 % scene 1: fixation
 if TrialRecord.User.SC
     SC_trials = [SC_trials 1];
-    set_bgcolor([sc_color]);   % change the background color to grey as SC
+    run_scene(scene0,01);
+    idle(0);   % clear the screen
 else
     SC_trials = [SC_trials 0];
-    set_bgcolor([]);
 end
 TrialRecord.User.SC_trials = SC_trials;
 run_scene(scene1,10);
@@ -348,7 +362,7 @@ if ~wth1.Success
     return
 else
     eventmarker(11) % Fixation acquired
-    if training_rewards(1), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', little_drops); end, end
+    if training_rewards(1), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', training_drops); end, end
 end
 
 % scene 2: stimulus
@@ -361,7 +375,7 @@ if ~lh2.Success
     eventmarker(46);
     return
 else
-    if training_rewards(2), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', little_drops); end, end
+    if training_rewards(2), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', training_drops); end, end
 end
 
 % scene 3: stimulus trace
@@ -373,7 +387,7 @@ if ~lh3.Success
     eventmarker(46);
     return
 else
-    if training_rewards(3), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', little_drops); end, end
+    if training_rewards(3), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', training_drops); end, end
 end
 
 % scene 4: context cue
@@ -390,7 +404,7 @@ if ~lh4.Success
     eventmarker(46);
     return
 else
-    if training_rewards(4), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', little_drops); end, end
+    if training_rewards(4), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', training_drops); end, end
 end
 
 % scene 5: context trace, targets on
@@ -402,7 +416,7 @@ if ~lh5.Success
     eventmarker(55) % Early Answer
     return
 else
-    if training_rewards(5), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', little_drops); end, end
+    if training_rewards(5), if rand(1) > (1-training_reward_prob), goodmonkey(solenoid_time, 'numreward', training_drops); end, end
 end
 
 % scene 6a: Double saccade prevention
@@ -450,7 +464,7 @@ if trial_correct
         directions = [directions 4];
     end
     
-    if ismember(TrialRecord.CurrentCondition,[2 4 5 8]) % Test for large/ small trial
+    if ismember(TrialRecord.CurrentCondition,[3 4 5 8]) % Test for large/ small trial
         idle(decision_trace_time, [],71)
         goodmonkey(solenoid_time, 'numreward', little_drops, 'pausetime', drop_gaps, 'eventmarker',99);
     else

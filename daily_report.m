@@ -268,7 +268,48 @@ nexttile
 polarhistogram(radians(s8&official),polarbins,'FaceColor','red')
 title('S8')
 
-sum(TrialRecord.TrialErrors==0) + sum(TrialRecord.TrialErrors==9)
-sum(TrialRecord.TrialErrors==0) + sum(TrialRecord.TrialErrors==1) + sum(TrialRecord.TrialErrors==2) +sum(TrialRecord.TrialErrors==3) +sum(TrialRecord.TrialErrors==8) + sum(TrialRecord.TrialErrors==9)
+
+% Some summary stats
+rew = sum(TrialRecord.TrialErrors==0) + sum(TrialRecord.TrialErrors==9);
+comp = sum(TrialRecord.TrialErrors==0) + sum(TrialRecord.TrialErrors==1) + sum(TrialRecord.TrialErrors==2) +sum(TrialRecord.TrialErrors==3) +sum(TrialRecord.TrialErrors==8) + sum(TrialRecord.TrialErrors==9);
+CLs = (sum(trials==8) + sum(trials==9)) / length(trials);
+
+disp(['R/C/CLs: ' num2str(rew) '/ ' num2str(comp) '/ ' num2str(CLs)])
+
+
+
+% Confusion matrix
+s1_prob = histcounts(directions(s1&official))/length(directions(s1&official));
+s2_prob = histcounts(directions(s2&official))/length(directions(s2&official));
+s3_prob = histcounts(directions(s3&official))/length(directions(s3&official));
+s4_prob = histcounts(directions(s4&official))/length(directions(s4&official));
+s5_prob = histcounts(directions(s5&official))/length(directions(s5&official));
+s6_prob = histcounts(directions(s6&official))/length(directions(s6&official));
+s7_prob = histcounts(directions(s7&official))/length(directions(s7&official));
+s8_prob = histcounts(directions(s8&official))/length(directions(s8&official));
+
+c1_prob = [s1_prob;s3_prob;s2_prob;s4_prob];
+c2_prob = [s5_prob;s7_prob;s6_prob;s8_prob];
+
+figure
+imagesc(c1_prob,[0 1]);
+colormap(hot)
+c = colorbar;
+c.Label.String = 'proportion of choices';
+title('Ctx 1 Confusion Matrix')
+xticklabels({'Up', 'Right', 'Down', 'Left'})
+xticks(1:4)
+yticklabels({'F1', 'F2', 'F3', 'F4'})
+yticks(1:4)
+
+figure
+imagesc(c2_prob,[0 1]);
+c = colorbar;
+c.Label.String = 'proportion of choices';
+title('Ctx 2 Confusion Matrix')
+xticklabels({'Up', 'Right', 'Down', 'Left'})
+xticks(1:4)
+yticklabels({'F1', 'F2', 'F3', 'F4'})
+yticks(1:4)
 
 

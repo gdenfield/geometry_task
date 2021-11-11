@@ -2,7 +2,7 @@
 
 function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
 % Training Variables
-block_length = 3000; % Number of trials before context switch
+block_length = 100; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
 n_fractals = 4; % 1-4, set to 4 for full set of fractals
 
@@ -53,15 +53,32 @@ conditions =... %Context 1: rows 1-4, Context 2: rows 5-8
 
 % Randomly select block if first trial
 if isempty(TrialRecord.TrialErrors)
-    first_context = 2;%randi([1,2]);
+    first_context = 1;%randi([1,2]);
     context = first_context;
     TrialRecord.User.SC = 0;
+    TrialRecord.User.CL_trials = [];
 end
 
+
 % Switch Procedure
-if TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length || TrialRecord.User.switch == 1
-    TrialRecord.User.SC = 1; % Don't give SC trial, but determine if switch will occur
-    switch_test = randi([0,1]);
+threshold = 0.65; % Hit rate
+window = 10; % trials
+ncl = ~TrialRecord.User.CL_trials;
+completed = ismember(TrialRecord.TrialErrors, 0:4);
+A = TrialRecord.TrialErrors(ncl&completed) == 0;
+B = smoothdata(A,'gaussian',window);
+above = B>threshold;
+if length(above) > window
+    criterion = isequal(above(end-window+1:end), ones(1,window));
+    disp(['Criterion Performance: ' num2str(sum(above(end-window+1:end))) ' of ' num2str(window)])
+else
+    criterion = 0;
+end
+
+if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && criterion) || TrialRecord.User.switch == 1 ) && TrialRecord.TrialErrors(end)==0
+    TrialRecord.User.SC = 1; % SC on
+    TrialRecord.User.switch = 1; % once triggered, stay triggered!
+    switch_test = randi([0,1]); % Determine if actual switch will occur
     if switch_test
         switch context
             case 1
@@ -117,6 +134,15 @@ else % if not CL
         chosen_condition = conditions(condition,:);
         break
     end
+    end
+end
+
+% Repeat SC trial if not completed
+if ~isempty(TrialRecord.TrialErrors)
+    if (TrialRecord.User.SC_trials(end) == 1) && (~ismember(TrialRecord.TrialErrors(end), 0:4))
+        TrialRecord.User.SC = 1;
+        condition = TrialRecord.ConditionsPlayed(end);
+        chosen_condition = conditions(condition,:);
     end
 end
 
@@ -187,6 +213,13 @@ C(8).Color = target_color;  % [R G B]
 C(8).FillFlag = 1;
 C(8).Xpos = left(1);
 C(8).Ypos = left(2);
+
+%9: SC
+C(9).Type = 'pic';
+C(9).Name = 'sc.png';
+C(9).Xpos = 0;
+C(9).Ypos = 0;
+C(9).Colorkey = [0 0 0]; %sets black as transparent
 
 TrialRecord.User.CL_trials = CL_trials;
 TrialRecord.NextBlock = context;

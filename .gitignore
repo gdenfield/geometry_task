@@ -2,3 +2,4 @@
 *.asv
 *.ipynb
 .DS_Store
+.tmp.driveupload*
