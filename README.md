@@ -1,6 +1,8 @@
 # geometry_task
 MonkeyLogic files for geometry task.
 
+Over the course of training, I've created two versions of the task. **V2.0** is close to the task we've discussed in project proposals, but V1.0 might come in handy for training new animals (due to greater control over the number of stimuli and the contrast of targets, which can be adjusted in real-time while the animal trains).
+
 ## Timing Variables
 fix_time
 stim_time
