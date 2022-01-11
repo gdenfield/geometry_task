@@ -2,7 +2,7 @@
 
 function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
 % Training Variables
-block_length = 100; % Number of trials before context switch
+block_length = 70; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
 n_fractals = 4; % 1-4, set to 4 for full set of fractals
 
@@ -53,7 +53,7 @@ conditions =... %Context 1: rows 1-4, Context 2: rows 5-8
 
 % Randomly select block if first trial
 if isempty(TrialRecord.TrialErrors)
-    first_context = 1;%randi([1,2]);
+    first_context = randi([1,2]);
     context = first_context;
     TrialRecord.User.SC = 0;
     TrialRecord.User.CL_trials = [];
@@ -61,7 +61,7 @@ end
 
 
 % Switch Procedure
-threshold = 0.65; % Hit rate
+threshold = 0.6; % Hit rate
 window = 10; % trials
 ncl = ~TrialRecord.User.CL_trials;
 completed = ismember(TrialRecord.TrialErrors, 0:4);

@@ -1,8 +1,10 @@
+%% INITIALIZATION
 if ~exist('eye_','var'), error('This task requires eye signal input. Please set it up or try the simulation mode.'); end
 hotkey('x', 'escape_screen(); assignin(''caller'',''continue_'',false);');
 hotkey('s', 'TrialRecord.User.switch = 1;'); % press 's' key during task to manually trigger context switch (with SC trials)
 hotkey('d', 'TrialRecord.User.block_length = TrialRecord.User.block_length * 2;'); % press 'd' to double block length
 hotkey('h', 'TrialRecord.User.block_length = TrialRecord.User.block_length / 2;'); % press 'h' to half block length
+hotkey('t', 'idle(120000, [75 0 130], 666);') % press 't' to give a 2-minute timeout
 
 % Behavioral Codes
 bhv_code(...
@@ -24,7 +26,8 @@ bhv_code(...
     66,'Choice Made',...
     70,'Pre-Reward, Large',...
     71,'Pre-Reward, Small',...
-    99,'Reward'); 
+    99,'Reward',...
+    666,'Tantrum'); 
 
 % Error Codes
 trialerror(... 
@@ -70,13 +73,11 @@ persistent CC_trials
 persistent SC_trials
 persistent None_trials
 persistent correct_count
-persistent directions
 
 if isempty(CC_trials)
     CC_trials = [];
     SC_trials = [];
     None_trials = [];
-    directions = [];
 end
 
 if isempty(correct_count)
@@ -88,7 +89,7 @@ end
 TrialRecord.User.correct_count = correct_count;
 dashboard(3, ['Correct Trials: ' num2str(sum(TrialRecord.TrialErrors==0) + sum(TrialRecord.TrialErrors==9)) ', Completed Trials: ' num2str(sum(TrialRecord.TrialErrors==0) + sum(TrialRecord.TrialErrors==1) + sum(TrialRecord.TrialErrors==2) + sum(TrialRecord.TrialErrors==3) + sum(TrialRecord.TrialErrors==4))], [0 255 255]);
 
-% PARAMETERS
+%% PARAMETERS
 % Time intervals (in ms):
 wait_for_fix = 5000;
 fix_time = 500;
@@ -251,7 +252,7 @@ con6.add(tc);
 scene6 = create_scene(con6,[up right down left]);
 
 
-% TASK:
+%% TASK:
 %Dashboard settings
 allTrials = TrialRecord.TrialErrors;
 ncl = ~TrialRecord.User.CL_trials(1:end-1);
@@ -353,10 +354,8 @@ if ~wth1.Success
     idle(0);
     if wth1.Waiting
         trialerror(5); % No Fixation
-        directions = [directions 0];
     else
         trialerror(6); % Break Fixation
-        directions = [directions 0];
         eventmarker(46);
     end
     return
@@ -371,7 +370,6 @@ run_scene(scene2,20);
 if ~lh2.Success
     idle(0);
     trialerror(6); % Break Fixation
-    directions = [directions 0];
     eventmarker(46);
     return
 else
@@ -383,7 +381,6 @@ run_scene(scene3,30);
 if ~lh3.Success
     idle(0);
     trialerror(6); % Break Fixation
-    directions = [directions 0];
     eventmarker(46);
     return
 else
@@ -400,7 +397,6 @@ end
 if ~lh4.Success
     idle(0);
     trialerror(6); % Break Fixation
-    directions = [directions 0];
     eventmarker(46);
     return
 else
@@ -412,7 +408,6 @@ run_scene(scene5, 50);
 if ~lh5.Success
     idle(0);
     trialerror(7); % Early Answer
-    directions = [directions 0];
     eventmarker(55) % Early Answer
     return
 else
@@ -425,7 +420,6 @@ if ~wth6a.Success % Saccade initiated
     eventmarker(61)
 else
     trialerror(8); % No Choice
-    directions = [directions 0];
 end
 
 % scene 6: choice
@@ -439,30 +433,18 @@ if ~mul6.Success
     idle(0);
     if mul6.Waiting
         trialerror(9); % Double saccade
-        directions = [directions 0];
     else
         trialerror(9); % Break Choice
-        directions = [directions 0];
         eventmarker(65)
     end
     return
 end
 
-% Rewards
+%% REWARDS
 trial_correct = (ismember(TrialRecord.CurrentCondition, [1 8]) && mul6.ChosenTarget == up) || (ismember(TrialRecord.CurrentCondition, [2 5]) && mul6.ChosenTarget == right) || (ismember(TrialRecord.CurrentCondition, [3 6]) && mul6.ChosenTarget == down) || (ismember(TrialRecord.CurrentCondition, [4 7]) && mul6.ChosenTarget == left);
 
 if trial_correct
     trialerror(0);
-    
-    if ismember(TrialRecord.CurrentCondition,[1 8])
-        directions = [directions 1];
-    elseif ismember(TrialRecord.CurrentCondition,[2 5])
-        directions = [directions 2];
-    elseif ismember(TrialRecord.CurrentCondition,[3 6])
-        directions = [directions 3];
-    elseif ismember(TrialRecord.CurrentCondition,[4 7])
-        directions = [directions 4];
-    end
     
     if ismember(TrialRecord.CurrentCondition,[3 4 5 8]) % Test for large/ small trial
         idle(decision_trace_time, [],71)
@@ -474,20 +456,14 @@ if trial_correct
     
 elseif mul6.ChosenTarget == up
     trialerror(1);
-    directions = [directions 1];
     idle(time_out);
 elseif mul6.ChosenTarget == right
     trialerror(2);
-    directions = [directions 2];
     idle(time_out);
 elseif mul6.ChosenTarget == down
     trialerror(3);
-    directions = [directions 3];
     idle(time_out);
 elseif mul6.ChosenTarget == left
     trialerror(4);
-    directions = [directions 4];
     idle(time_out);    
 end
-
-TrialRecord.User.directions = directions;           

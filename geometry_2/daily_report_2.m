@@ -183,3 +183,21 @@ xticklabels({'Up', 'Right', 'Down', 'Left'})
 xticks(1:4)
 yticklabels({'F1', 'F2', 'F3', 'F4'})
 yticks(1:4)
+%%
+figure
+bar([hit_rate_2(trials(s1&~CL_trials))
+hit_rate_2(trials(s2&~CL_trials))
+hit_rate_2(trials(s3&~CL_trials))
+hit_rate_2(trials(s4&~CL_trials))],'FaceAlpha',.5)
+hold on
+bar([hit_rate_2(trials(s5&~CL_trials))
+hit_rate_2(trials(s6&~CL_trials))
+hit_rate_2(trials(s7&~CL_trials))
+hit_rate_2(trials(s8&~CL_trials))],'FaceAlpha',.5)
+legend('C1','C2')
+%%
+tants = [];
+for i = 1:length(data)
+tants = [tants; sum(data(i).BehavioralCodes.CodeNumbers==666)];
+end
+sum(tants)

@@ -31,6 +31,8 @@ for t = 1:length(data)
     
     session(t).sc_on = TrialRecord.User.SC_trials(t);
     
+    session(t).CL_trial = TrialRecord.User.CL_trials(t);
+    
     session(t).cc_file = data(t).TaskObject.Attribute(4).Name;
     session(t).stimulus_file = data(t).TaskObject.Attribute(3).Name;
     
