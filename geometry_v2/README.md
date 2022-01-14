@@ -1,4 +1,4 @@
-## Scenes:
+## Scenes
 For all: success --> next scene, failure --> scene 1
 - 1: FP on, single target wth: fix_time, little_drops
 - 2: stim on, FP on, multi target wth: stim_time, little_drops
