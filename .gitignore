@@ -3,5 +3,4 @@
 *.ipynb
 .DS_Store
 .tmp.driveupload*
-db_*
 112921.mat
