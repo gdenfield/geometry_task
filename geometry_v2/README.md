@@ -1,3 +1,6 @@
+# geometry_v2
+Similar conventions to V1, but with more organization, different switch-cue, correction-loop error code structure.
+
 ## Scenes
 For all: success --> next scene, failure --> scene 1
 - 1: FP on, single target wth: fix_time, little_drops
@@ -13,6 +16,21 @@ For all: success --> next scene, failure --> scene 1
 - Right, 2
 - Down, 3
 - Left, 4
+
+## Error Codes
+Changed error codes in this version to reflect absolute error directions, as opposed to directions relative to the correct choice (as in v1).
+- 0: Correct
+- 1: Incorrect - Up
+- 2: Incorrect - Right
+- 3: Incorrect - Down
+- 4: Incorrect - Left
+- 5-9: see timingfile
+
+## Hot Keys
+- 's' to manually trigger context switch (with random number of SC trials)
+- 'd' to double the number of trials in a given block (context)
+- 'h' to halve the  number of trials in a given block (context)
+- 't' to trigger a 2-minute timeout with a purple background screen (negative reinforcement for shaking)
 
 ## Equipment 
 - MonkeyLogic, running on the silvia_ML computer.
