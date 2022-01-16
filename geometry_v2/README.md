@@ -2,9 +2,10 @@
 Similar conventions to V1, but with more organization, different switch-cue, correction-loop error code structure.
 
 ## Scenes
-For all: success --> next scene, failure --> scene 1
-- 1: FP on, single target wth: fix_time, little_drops
-- 2: stim on, FP on, multi target wth: stim_time, little_drops
+For all: success --> next scene, failure --> scene 1 (or scene 0 for switch-cue trials)
+- 0: switch cue (SC) on, time counter with: sc_duration
+- 1: FP on, single target wth: fix_time
+- 2: stim on, FP on, multi target wth: stim_time
 - 3: FP on, single target wth: stim_trace_time, little_drops
 - 4: ctx_cue on, FP on, single target wth: ctx_cue_time
 - 5: FP on, target & off_targets on, single target wth: ctx_cue_trace_time, little_drops
@@ -16,6 +17,12 @@ For all: success --> next scene, failure --> scene 1
 - Right, 2
 - Down, 3
 - Left, 4
+
+## Rewards
+I've found it easiest to vary the number of reward pulses instead of varying the solenoid opening time. Three variables describe the reward contingencies:
+- little_drops: number of pulses to use for low reward conditions. This can be set to zero to create an unrewarded condtion.
+- big_drops: number of pulses to use for large reward conditions.
+- training_drops: number of pulses to use at end of select scenes to keep animals engaged in early parts of training. To turn on these rewards, change the values in the _training_rewards_ variable from 0's to 1's.
 
 ## Error Codes
 Changed error codes in this version to reflect absolute error directions, as opposed to directions relative to the correct choice (as in v1).
