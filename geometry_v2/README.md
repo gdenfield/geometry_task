@@ -20,9 +20,9 @@ For all: success --> next scene, failure --> scene 1 (or scene 0 for switch-cue 
 
 ## Rewards
 I've found it easiest to vary the number of reward pulses instead of varying the solenoid opening time. Three variables describe the reward contingencies:
-- little_drops: number of pulses to use for low reward conditions. This can be set to zero to create an unrewarded condtion.
-- big_drops: number of pulses to use for large reward conditions.
-- training_drops: number of pulses to use at end of select scenes to keep animals engaged in early parts of training. To turn on these rewards, change the values in the _training_rewards_ variable from 0's to 1's.
+- _little_drops_: number of pulses to use for low reward conditions. This can be set to zero to create an unrewarded condtion.
+- _big_drops_: number of pulses to use for large reward conditions.
+- _training_drops_: number of pulses to use at end of select scenes to keep animals engaged in early parts of training. To turn on these rewards, change the values in the _training_rewards_ variable from 0's to 1's.
 
 ## Error Codes
 Changed error codes in this version to reflect absolute error directions, as opposed to directions relative to the correct choice (as in v1).
