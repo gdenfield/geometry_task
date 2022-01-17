@@ -41,7 +41,7 @@ Changed error codes in this version to reflect absolute error directions, as opp
 
 ## Data and Analyses
 - Data are all stored on the "silvia_ML" computer in rig A, and are backed up to the lab server and my Columbia Google Drive.
-- The **Analysis_scripts** folder contains many .m files that could be useful, but in practice I mostly run _daily_report_2.m_ at the end of each session to see several useful daily summaries of performance. The _multi_day_*.m_ files are useful for importing, parsing, and analysing multiple sessions to look for trends across a week or a month, etc.
+- The **Analysis_scripts** folder contains many .m files that could be useful, but in practice I mostly run _daily_report_2.m_ at the end of each session to see several useful daily summaries of performance. The _multi_day_X.m_ files are useful for importing, parsing, and analysing multiple sessions to look for trends across a week or a month, etc.
 
 ## Equipment 
 - MonkeyLogic, running on the silvia_ML computer.
