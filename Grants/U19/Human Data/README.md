@@ -1,6 +1,6 @@
 # MTurk Data and Analyses
 
-This contains all the data and analyses for the various versions of the task run on MTurk.
+This contains all the data, analyses, and figures for the various versions of the task run on MTurk.
 
 Data and trial sequences are stored in the folders, with *parser.m files specific to each version.
 
