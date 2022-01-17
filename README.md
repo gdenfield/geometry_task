@@ -11,7 +11,7 @@ Files for geometry task. Below is a brief overview of the organization and conte
   - The **NRSA** folder contains Microsoft Word and PDF files of my F31 submission in Dec. 2020, reviewer comments to that submission, and the resubmission from Dec. 2021. There is also a file **behavior_figures.m** that contains the analyses and scripts to generate figures for the 2021 resubmission.
   - The folder **U19** contains all the data, analyses, and figures I completed for Daniel's U19 submission in Nov. 2021 (including human data from the mturk experiments).
 
-- **human_abstraction_task** contains all the relevant task files and media from the human analog of the task. Data and analyses can be found in Grants --> U19 --> Human Data.
+- **human_abstraction_task** contains all the relevant task files and media to run the human analog of the task. Data and analyses can be found in Grants --> U19 --> Human Data.
 
 - **Presentations** contains a powerpoint presentation I created for the Salzman/Fusi/Kiani joint lab meeting, as part of their Simons Foundation collaboration.
 
