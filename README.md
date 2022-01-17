@@ -13,5 +13,6 @@ Files for geometry task. Below is a brief overview of the organization and conte
 
 - **Presentations** contains a powerpoint presentation I created for the Salzman/Fusi/Kiani joint lab meeting, as part of their Simons Foundation collaboration.
 
+- **Random_Files** contains old figures and an experimental task using a color-matching paradigm. It can be safely ignored.
 ## Behavioral Data
 All behavioral data is on the computer named "silvia_ML", and is backed up automatically on the lab server and in my Columbia Google Drive.
