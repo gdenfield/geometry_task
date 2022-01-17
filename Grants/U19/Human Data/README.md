@@ -1,4 +1,4 @@
-# MTurk Data and Analyses
+# MTurk Data, Analyses, and Figures
 
 This contains all the data, analyses, and figures for the various versions of the task run on MTurk.
 
