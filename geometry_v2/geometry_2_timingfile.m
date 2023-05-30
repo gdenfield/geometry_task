@@ -451,12 +451,24 @@ small_reward_trial = ismember(TrialRecord.CurrentCondition,[3 4 5 8]); % Test fo
 if trial_correct
     trialerror(0);
     
+    rx = rand(1); % Simple probabilistic reward implementation; ~25% of time rew is 1 less than 'drops' and 25% of time it is 1 drop more
+    if rx < 0.26
+        ld = little_drops - 1;
+        bd = big_drops - 1;
+    elseif rx > 0.74
+        ld = little_drops + 1;
+        bd = big_drops + 1;
+    else
+        ld = little_drops;
+        bd = big_drops;
+    end
+    
     if small_reward_trial % Test for large/ small trial; gd 3/30/22
         idle(decision_trace_time, [],71)
-        goodmonkey(solenoid_time, 'numreward', little_drops, 'pausetime', drop_gaps, 'eventmarker',99);
+        goodmonkey(solenoid_time, 'numreward', ld, 'pausetime', drop_gaps, 'eventmarker',99);
     else
         idle(decision_trace_time,[], 70)
-        goodmonkey(solenoid_time, 'numreward', big_drops, 'pausetime', drop_gaps, 'eventmarker',99);
+        goodmonkey(solenoid_time, 'numreward', bd, 'pausetime', drop_gaps, 'eventmarker',99);
     end
     
 elseif mul6.ChosenTarget == up
