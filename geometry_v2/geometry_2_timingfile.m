@@ -197,7 +197,7 @@ con4.add(tc);
 TrialRecord.User.CC = TrialRecord.CurrentTrialWithinBlock<=n_cc_trials || TrialRecord.User.SC;
 
 %Build Scene    
-if TrialRecord.User.CC || z<=74
+if TrialRecord.User.CC || z<85
     CC_trials = [CC_trials 1];
     None_trials = [None_trials 0];
     if TrialRecord.User.SC
@@ -451,16 +451,13 @@ small_reward_trial = ismember(TrialRecord.CurrentCondition,[3 4 5 8]); % Test fo
 if trial_correct
     trialerror(0);
     
-    rx = rand(1); % Simple probabilistic reward implementation; ~25% of time rew is 1 less than 'drops' and 25% of time it is 1 drop more
-    if rx < 0.26
-        ld = little_drops - 1;
+    rx = rand(1); % Simple probabilistic reward implementation
+    if rx < 0.5
+        ld = little_drops - 2;
         bd = big_drops - 1;
-    elseif rx > 0.74
-        ld = little_drops + 1;
-        bd = big_drops + 1;
     else
         ld = little_drops;
-        bd = big_drops;
+        bd = big_drops + 1;
     end
     
     if small_reward_trial % Test for large/ small trial; gd 3/30/22
