@@ -51,12 +51,17 @@ conditions =... %Context 1: rows 1-4, Context 2: rows 5-8
     3 6;
     4 6];
 
-% Randomly select block if first trial
+% If first trial, randomly select block and load sounds
 if isempty(TrialRecord.TrialErrors)
     first_context = randi([1,2]);
     context = first_context;
     TrialRecord.User.SC = 0;
     TrialRecord.User.CL_trials = [];
+    
+    [TrialRecord.User.abfx, TrialRecord.User.abFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\soundfx\flap.mp3');
+    [TrialRecord.User.infx, TrialRecord.User.inFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\soundfx\wrong-100536.mp3');
+    [TrialRecord.User.rbfx, TrialRecord.User.rbFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\soundfx\point.mp3');
+    [TrialRecord.User.rsfx, TrialRecord.User.rsFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\soundfx\interface-124464.mp3');
 end
 
 

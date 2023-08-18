@@ -359,6 +359,7 @@ if ~wth1.Success
         trialerror(5); % No Fixation
     else
         trialerror(6); % Break Fixation
+        sound(TrialRecord.User.abfx, TrialRecord.User.abFs)
         eventmarker(46);
     end
     return
@@ -373,6 +374,7 @@ run_scene(scene2,20);
 if ~lh2.Success
     idle(0);
     trialerror(6); % Break Fixation
+    sound(TrialRecord.User.abfx, TrialRecord.User.abFs)
     eventmarker(46);
     return
 else
@@ -384,6 +386,7 @@ run_scene(scene3,30);
 if ~lh3.Success
     idle(0);
     trialerror(6); % Break Fixation
+    sound(TrialRecord.User.abfx, TrialRecord.User.abFs)
     eventmarker(46);
     return
 else
@@ -401,6 +404,7 @@ end
 if ~lh4.Success
     idle(0);
     trialerror(6); % Break Fixation
+    sound(TrialRecord.User.abfx, TrialRecord.User.abFs)
     eventmarker(46);
     return
 else
@@ -412,6 +416,7 @@ run_scene(scene5, 50);
 if ~lh5.Success
     idle(0);
     trialerror(7); % Early Answer
+    sound(TrialRecord.User.abfx, TrialRecord.User.abFs)
     eventmarker(55) % Early Answer
     return
 else
@@ -439,6 +444,7 @@ if ~mul6.Success
         trialerror(9); % Double saccade
     else
         trialerror(9); % Break Choice
+        sound(TrialRecord.User.abfx, TrialRecord.User.abFs)
         eventmarker(65)
     end
     return
@@ -462,14 +468,17 @@ if trial_correct
     
     if small_reward_trial % Test for large/ small trial; gd 3/30/22
         idle(decision_trace_time, [],71)
+        sound(TrialRecord.User.rsfx, TrialRecord.User.rsFs)
         goodmonkey(solenoid_time, 'numreward', ld, 'pausetime', drop_gaps, 'eventmarker',99);
     else
         idle(decision_trace_time,[], 70)
+        sound(TrialRecord.User.rbfx, TrialRecord.User.rbFs)
         goodmonkey(solenoid_time, 'numreward', bd, 'pausetime', drop_gaps, 'eventmarker',99);
     end
     
 elseif mul6.ChosenTarget == up
     trialerror(1);
+    sound(TrialRecord.User.infx, TrialRecord.User.inFs)
     if small_reward_trial
         idle(time_out_sr);
     else
@@ -477,6 +486,7 @@ elseif mul6.ChosenTarget == up
     end
 elseif mul6.ChosenTarget == right
     trialerror(2);
+    sound(TrialRecord.User.infx, TrialRecord.User.inFs)
     if small_reward_trial
         idle(time_out_sr);
     else
@@ -484,6 +494,7 @@ elseif mul6.ChosenTarget == right
     end
 elseif mul6.ChosenTarget == down
     trialerror(3);
+    sound(TrialRecord.User.infx, TrialRecord.User.inFs)
     if small_reward_trial
         idle(time_out_sr);
     else
@@ -491,6 +502,7 @@ elseif mul6.ChosenTarget == down
     end
 elseif mul6.ChosenTarget == left
     trialerror(4);
+    sound(TrialRecord.User.infx, TrialRecord.User.inFs)
     if small_reward_trial
         idle(time_out_sr);
     else
