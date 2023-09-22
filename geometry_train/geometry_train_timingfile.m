@@ -212,14 +212,14 @@ elseif TrialRecord.User.CC
     SC_trials = [SC_trials 0];
     None_trials = [None_trials 0];
     dashboard(2, 'CC Trial',[255 0 255])
-    scene4 = create_scene(con4,[fixation_point FP_background ctx_cue]);
+    scene4 = create_scene(con4,[fixation_point FP_background ctx_cue stimulus]);
     
 elseif TrialRecord.User.None
     CC_trials = [CC_trials 0];
     SC_trials = [SC_trials 0];
     None_trials = [None_trials 1];
     dashboard(2, 'None Trial', [255 255 255])
-    scene4 = create_scene(con4,[fixation_point FP_background]);
+    scene4 = create_scene(con4,[fixation_point FP_background stimulus]);
 end
 
 TrialRecord.User.CC_trials = CC_trials;

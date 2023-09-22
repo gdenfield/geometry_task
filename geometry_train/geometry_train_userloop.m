@@ -7,7 +7,7 @@ sequence_depth = 2; % Number of times each condition should be shown in a given 
 CL_threshold = -1; % Number of errors for a given condition before starting correction loop
 CL_depth = 1; % Number of times condition will be repeated in CL
 n_fractals = 4; % 1-4, set to 4 for full set of fractals
-training = 1; % 1-8, SINGLE-CONDITION TRAINING, SEE CAPS COMMENT BELOW TOO!!
+training = 5; % 1-8, SINGLE-CONDITION TRAINING, SEE CAPS COMMENT BELOW TOO!!
 instructed_threshold = 5; % Adjust contrast after threshold errors in a row, only in CL
 
 % Initialize ML variables
