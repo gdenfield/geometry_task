@@ -25,6 +25,13 @@ if isempty(trials_left_in_sequence) || TrialRecord.BlockChange %Reset counters i
     TrialRecord.User.contrast = 1;
     TrialRecord.User.switch = 0;
     TrialRecord.User.block_length = block_length;
+    
+    %Update counters for correction loop
+    TrialRecord.User.up_count = 0;
+    TrialRecord.User.right_count = 0;
+    TrialRecord.User.down_count = 0;
+    TrialRecord.User.left_count = 0;
+    TrialRecord.User.cond_count = zeros(1,2*n_fractals);
 end
 if isempty(timing_filename_returned)
     timing_filename_returned = true;
@@ -105,8 +112,9 @@ if ~isempty(TrialRecord.TrialErrors)
         correct_counts(TrialRecord.CurrentCondition) = correct_counts(TrialRecord.CurrentCondition)+1;
         CL_trials = [CL_trials 0];
         disp('Correct!')
-    elseif ismember(TrialRecord.TrialErrors(end), [1 2 3 4])
+    elseif ismember(TrialRecord.TrialErrors(end), [1 2 3 4]) && any(TrialRecord.User.cond_count == 2) % 09/22/23 GD: need 2 wrongs on a condition to trigger CL
         %trials_left_in_sequence(TrialRecord.CurrentCondition) = trials_left_in_sequence(TrialRecord.CurrentCondition)+1;
+        TrialRecord.User.cond_to_repeat = find(TrialRecord.User.cond_count == 2);
         incorrect_counts(TrialRecord.CurrentCondition) = incorrect_counts(TrialRecord.CurrentCondition)+1;
         CL_trials = [CL_trials 1];
         disp('CL Trial!')
@@ -128,11 +136,14 @@ disp(['incorrect counts: ' num2str(incorrect_counts(1:4)) ' || ' num2str(incorre
 
 if sum(trials_left_in_sequence(1,(1:4)+( (context - 1) * 4))) == 0
     trials_left_in_sequence = sequence_depth + zeros(1,2*n_fractals);
+    TrialRecord.User.cond_count = zeros(1,2*n_fractals); %09/22/23 GD: reset cond_counter each block
 end
 
 %Pick fractal
 if CL_trials(end) == 1 % if CL trial, repeat condition
-    condition = TrialRecord.ConditionsPlayed(end);
+    % condition = TrialRecord.ConditionsPlayed(end); % old version
+    % condition = find(TrialRecord.User.cond_count >= 2); % 09/22/23 GD: set condition equal to one missed twice, triggering CL
+    condition = TrialRecord.User.cond_to_repeat;
     chosen_condition = conditions(condition,:);
 else % if not CL
     while true

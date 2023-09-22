@@ -478,6 +478,7 @@ if trial_correct
     
 elseif mul6.ChosenTarget == up
     trialerror(1);
+    TrialRecord.User.cond_count(TrialRecord.CurrentCondition) = TrialRecord.User.cond_count(TrialRecord.CurrentCondition) + 1; % 09/22/23 GD: increment cond_counter for CL
     sound(TrialRecord.User.infx, TrialRecord.User.inFs)
     if small_reward_trial
         idle(time_out_sr);
@@ -486,6 +487,7 @@ elseif mul6.ChosenTarget == up
     end
 elseif mul6.ChosenTarget == right
     trialerror(2);
+    TrialRecord.User.cond_count(TrialRecord.CurrentCondition) = TrialRecord.User.cond_count(TrialRecord.CurrentCondition) + 1; % 09/22/23 GD: increment cond_counter for CL
     sound(TrialRecord.User.infx, TrialRecord.User.inFs)
     if small_reward_trial
         idle(time_out_sr);
@@ -494,6 +496,7 @@ elseif mul6.ChosenTarget == right
     end
 elseif mul6.ChosenTarget == down
     trialerror(3);
+    TrialRecord.User.cond_count(TrialRecord.CurrentCondition) = TrialRecord.User.cond_count(TrialRecord.CurrentCondition) + 1; % 09/22/23 GD: increment cond_counter for CL
     sound(TrialRecord.User.infx, TrialRecord.User.inFs)
     if small_reward_trial
         idle(time_out_sr);
@@ -502,6 +505,7 @@ elseif mul6.ChosenTarget == down
     end
 elseif mul6.ChosenTarget == left
     trialerror(4);
+    TrialRecord.User.cond_count(TrialRecord.CurrentCondition) = TrialRecord.User.cond_count(TrialRecord.CurrentCondition) + 1; % 09/22/23 GD: increment cond_counter for CL
     sound(TrialRecord.User.infx, TrialRecord.User.inFs)
     if small_reward_trial
         idle(time_out_sr);
