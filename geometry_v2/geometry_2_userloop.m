@@ -115,7 +115,7 @@ if ~isempty(TrialRecord.TrialErrors)
     elseif ismember(TrialRecord.TrialErrors(end), [1 2 3 4]) && any(TrialRecord.User.cond_count == 2) % 09/22/23 GD: need 2 wrongs on a condition to trigger CL
         %trials_left_in_sequence(TrialRecord.CurrentCondition) = trials_left_in_sequence(TrialRecord.CurrentCondition)+1;
         TrialRecord.User.cond_to_repeat = find(TrialRecord.User.cond_count == 2);
-        TrialRecord.user.cond_count(find(TrialRecord.User.cond_count == 2)) = 0;
+        TrialRecord.User.cond_count(find(TrialRecord.User.cond_count == 2)) = 0;
         incorrect_counts(TrialRecord.CurrentCondition) = incorrect_counts(TrialRecord.CurrentCondition)+1;
         CL_trials = [CL_trials 1];
         disp('CL Trial!')
