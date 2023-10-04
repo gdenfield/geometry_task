@@ -459,7 +459,7 @@ if trial_correct
     
     rx = rand(1); % Simple probabilistic reward implementation
     if rx < 0.5
-        ld = little_drops - 2;
+        ld = little_drops - 1;
         bd = big_drops - 1;
     else
         ld = little_drops;
