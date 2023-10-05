@@ -7,7 +7,7 @@ sequence_depth = 2; % Number of times each condition should be shown in a given 
 CL_threshold = -1; % Number of errors for a given condition before starting correction loop
 CL_depth = 1; % Number of times condition will be repeated in CL
 n_fractals = 4; % 1-4, set to 4 for full set of fractals
-training = 7; % 1-8, SINGLE-CONDITION TRAINING, SEE CAPS COMMENT BELOW TOO!!
+training = [6, 7]; % 1-8, SINGLE-CONDITION TRAINING, SEE CAPS COMMENT BELOW TOO!!
 instructed_threshold = 5; % Adjust contrast after threshold errors in a row, only in CL
 
 % Initialize ML variables
@@ -30,7 +30,7 @@ if isempty(condition_correct) || TrialRecord.BlockChange %Reset counters if star
     condition_incorrect = zeros(1,2*n_fractals);
     correct_counts = zeros(1,2*n_fractals);
     incorrect_counts = zeros(1,2*n_fractals);
-    CL_counter = [0 0]; 
+    CL_counter = [0 0];
     CL_errors = 0;
     CL_trials = [];
     TrialRecord.User.contrast = 1;
@@ -104,7 +104,7 @@ try
         %condition_incorrect(TrialRecord.CurrentCondition) = condition_incorrect(TrialRecord.CurrentCondition)-1;
         incorrect_counts(TrialRecord.CurrentCondition) = incorrect_counts(TrialRecord.CurrentCondition)-1;
     end
-    
+
 disp(['condition correct: ' num2str(condition_correct)])
 %disp(['condition incorrect: ' num2str(condition_incorrect)])
 disp(['incorrect counts: ' num2str(incorrect_counts)])
@@ -115,7 +115,7 @@ disp(['incorrect counts: ' num2str(incorrect_counts)])
         CL_counter = [CL_depth TrialRecord.CurrentCondition];
         CL_errors = 0;
     end
-catch    
+catch
 end
 
 %Reset sequence count if each fractal has been encountered enough times
@@ -182,7 +182,14 @@ if CL_errors >= instructed_threshold
 %     end
 end
 
-chosen_condition = conditions(training,:); % SINGLE-CONDITION TRAINING, IF USING, COMMENT OUT NEXT LINE
+% Training Area Playground
+% SINGLE-CONDITION TRAINING, COMMENT OUT IF NOT USING
+if numel(training) == 1
+    chosen_condition = conditions(training,:);
+elseif numel(training) == 2 && TrialRecord.User.CL == 0
+    chosen_condition = conditions(training(round(rand(1)) + 1), :);
+end
+
 
 
 % Set the stimuli
