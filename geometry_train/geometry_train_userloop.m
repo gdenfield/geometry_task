@@ -7,7 +7,7 @@ sequence_depth = 2; % Number of times each condition should be shown in a given 
 CL_threshold = -1; % Number of errors for a given condition before starting correction loop
 CL_depth = 1; % Number of times condition will be repeated in CL
 n_fractals = 4; % 1-4, set to 4 for full set of fractals
-training = 5; % 1-8, SINGLE-CONDITION TRAINING, SEE CAPS COMMENT BELOW TOO!!
+training = [6, 7]; % 1-8, SINGLE-CONDITION TRAINING, SEE CAPS COMMENT BELOW TOO!!
 instructed_threshold = 5; % Adjust contrast after threshold errors in a row, only in CL
 
 % Initialize ML variables
@@ -182,7 +182,14 @@ if CL_errors >= instructed_threshold
 %     end
 end
 
-chosen_condition = conditions(training,:); % SINGLE-CONDITION TRAINING, IF USING, COMMENT OUT NEXT LINE
+% Training Area Playground
+% SINGLE-CONDITION TRAINING, COMMENT OUT IF NOT USING
+if numel(training) == 1
+    chosen_condition = conditions(training,:); 
+elseif numel(training) == 2 && TrialRecord.User.CL == 0
+    chosen_condition = conditions(training(round(rand(1)) + 1), :);
+end
+    
 
 
 % Set the stimuli
