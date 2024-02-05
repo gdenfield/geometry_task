@@ -2,13 +2,13 @@ function [C,timingfile,userdefined_trialholder] = geometry_train_userloop(MLConf
 %MJP 11/11/2020
 
 % Training variables
-block_length = 3000; % Number of trials before context switch
+block_length = 250; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
 CL_threshold = -1; % Number of errors for a given condition before starting correction loop
 CL_depth = 1; % Number of times condition will be repeated in CL
 n_fractals = 4; % 1-4, set to 4 for full set of fractals
-training = [6, 7]; % 1-8, SINGLE-CONDITION TRAINING, SEE CAPS COMMENT BELOW TOO!!
-instructed_threshold = 5; % Adjust contrast after threshold errors in a row, only in CL
+%training = [7, 8]; % 1-8, SINGLE-CONDITION TRAINING, SEE CAPS COMMENT BELOW TOO!!
+instructed_threshold = 3; % Adjust contrast after threshold errors in a row, only in CL
 
 % Initialize ML variables
 C = [];
@@ -184,11 +184,11 @@ end
 
 % Training Area Playground
 % SINGLE-CONDITION TRAINING, COMMENT OUT IF NOT USING
-if numel(training) == 1
-    chosen_condition = conditions(training,:);
-elseif numel(training) == 2 && TrialRecord.User.CL == 0
-    chosen_condition = conditions(training(round(rand(1)) + 1), :);
-end
+% if numel(training) == 1
+%     chosen_condition = conditions(training,:);
+% elseif numel(training) == 2 && TrialRecord.User.CL == 0
+%     chosen_condition = conditions(training(round(rand(1)) + 1), :);
+% end
 
 
 

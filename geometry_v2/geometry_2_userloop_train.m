@@ -1,15 +1,15 @@
 % New version of task for geometry project MJP 07/15/21
 
-function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
+function [C,timingfile,userdefined_trialholder] = geometry_2_userloop_train(MLConfig,TrialRecord)
 % Training Variables
 block_length = 30; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
 n_fractals = 4; % 1-4, set to 4 for full set of fractals
-cl_counter = 2; % adjust for when to trigger correction loop
+cl_counter = 1; % adjust for when to trigger correction loop
 
 % Initialization
 C = [];
-timingfile = 'geometry_2_timingfile.m';
+timingfile = 'geometry_2_timingfile_train.m';
 userdefined_trialholder = '';
 persistent trials_left_in_sequence % number of time each fractal has been completed successfully
 persistent CL_trials % index of CL trials
@@ -167,7 +167,7 @@ if ~isempty(TrialRecord.TrialErrors)
 end
 
 % Stimuli
-image_list = {'stim_21.bmp','stim_81.bmp','stim_82.bmp', 'stim_95.bmp', 'cc_1.png', 'cc_2.png'};
+image_list = {'stim_21_train.bmp','stim_81_train.bmp','stim_82_train.bmp', 'stim_95_train.bmp', 'cc_1_train.png', 'cc_2_train.png'};
 stimulus = image_list{chosen_condition(1)};
 ctx_cue = image_list{chosen_condition(2)};
 
