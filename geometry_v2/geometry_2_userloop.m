@@ -87,11 +87,22 @@ else
     criterion = 0;
 end
 
+% Before switch occurs, calculate block performance criterion for CC change
+if TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && criterion
+    currBlock = TrialRecord.CurrentBlockCount;
+    blockToCalc = TrialRecord.BlockCount == currBlock;
+    blockTrials = TrialRecord.TrialErrors(ncl&completed&blockToCalc) == 0;
+    blockPerf = sum(blockTrials) / numel(blockTrials);
+end
+
 if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && criterion) || TrialRecord.User.switch == 1 ) && TrialRecord.TrialErrors(end)==0
     TrialRecord.User.SC = 1; % SC on
     TrialRecord.User.switch = 1; % once triggered, stay triggered!
     switch_test = randi([0,1]); % Determine if actual switch will occur
     if switch_test
+        
+        % Update CC here if blockPerf criterion met
+        
         switch context
             case 1
                 context = 2;
