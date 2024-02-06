@@ -63,7 +63,9 @@ if isempty(TrialRecord.TrialErrors)
     first_context = randi([1,2]);
     context = first_context;
     TrialRecord.User.SC = 0;
+    TrialRecord.User.ChangeTriggered = 0;
     TrialRecord.User.CL_trials = [];
+    TrialRecord.User.BlockPerf = [];
     
     [TrialRecord.User.abfx, TrialRecord.User.abFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\soundfx\flap.mp3');
     [TrialRecord.User.infx, TrialRecord.User.inFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\soundfx\wrong-100536.mp3');
@@ -74,7 +76,9 @@ end
 
 % Switch Procedure
 threshold = 0.70; % Hit rate
-window = 8; % trials
+window = 10; % trials
+blockThreshold = 0.75; % blockwise performance threshold for CC switch
+nBlockTrigger = 4; % number of blocks needed above threshold to trigger CC switch
 ncl = ~TrialRecord.User.CL_trials; %non-correction-loop trials
 completed = ismember(TrialRecord.TrialErrors, 0:4);
 A = TrialRecord.TrialErrors(ncl&completed) == 0;
@@ -88,11 +92,12 @@ else
 end
 
 % Before switch occurs, calculate block performance criterion for CC change
-if TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && criterion
+if (TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length) && criterion
     currBlock = TrialRecord.CurrentBlockCount;
     blockToCalc = TrialRecord.BlockCount == currBlock;
     blockTrials = TrialRecord.TrialErrors(ncl&completed&blockToCalc) == 0;
     blockPerf = sum(blockTrials) / numel(blockTrials);
+    TrialRecord.User.BlockPerf = [TrialRecord.User.BlockPerf, blockPerf];
 end
 
 if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && criterion) || TrialRecord.User.switch == 1 ) && TrialRecord.TrialErrors(end)==0
@@ -102,6 +107,9 @@ if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && cri
     if switch_test
         
         % Update CC here if blockPerf criterion met
+        if TrialRecord.CurrentBlockCount >= nBlockTrigger && (sum(TrialRecord.User.BlockPerf(end-(nBlockTrigger-1):end) > blockThreshold) >= nBlockTrigger)
+            TrialRecord.User.ChangeTriggered = 1;
+        end
         
         switch context
             case 1
