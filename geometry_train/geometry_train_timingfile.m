@@ -205,7 +205,9 @@ if TrialRecord.User.SC
     SC_trials = [SC_trials 1];
     None_trials = [None_trials 0];
     dashboard(2, 'SC Trial',[255 255 0])
-    scene4 = create_scene(con4,[fixation_point FP_background switch_cue]);
+    % scene4 = create_scene(con4,[fixation_point FP_background
+    % switch_cue]); - original code
+    scene4 = create_scene(con4,[fixation_point FP_background ctx_cue stimulus]); % code to remove switch_cue
     
 elseif TrialRecord.User.CC
     CC_trials = [CC_trials 1];

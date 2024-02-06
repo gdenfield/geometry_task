@@ -66,7 +66,7 @@ conditions =... %Context 1: rows 1-4, Context 2: rows 5-8
 
 % Randomly select block if first trial
 if isempty(TrialRecord.TrialErrors)
-    first_context = 1;%randi([1,2]);
+    first_context = randi([1,2]);
     context = first_context;
     TrialRecord.User.SC = 0; % for first call
 end
