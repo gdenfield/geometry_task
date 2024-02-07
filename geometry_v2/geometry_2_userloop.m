@@ -2,7 +2,7 @@
 
 function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
 % Training Variables
-block_length = 30; % Number of trials before context switch
+block_length = 10; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
 n_fractals = 4; % 1-4, set to 4 for full set of fractals
 
@@ -91,24 +91,25 @@ else
     criterion = 0;
 end
 
-% Before switch occurs, calculate block performance criterion for CC change
-if (TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length) && criterion
-    currBlock = TrialRecord.CurrentBlockCount;
-    blockToCalc = TrialRecord.BlockCount == currBlock;
-    blockTrials = TrialRecord.TrialErrors(ncl&completed&blockToCalc) == 0;
-    blockPerf = sum(blockTrials) / numel(blockTrials);
-    TrialRecord.User.BlockPerf = [TrialRecord.User.BlockPerf, blockPerf];
-end
-
 if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && criterion) || TrialRecord.User.switch == 1 ) && TrialRecord.TrialErrors(end)==0
     TrialRecord.User.SC = 1; % SC on
     TrialRecord.User.switch = 1; % once triggered, stay triggered!
     switch_test = randi([0,1]); % Determine if actual switch will occur
     if switch_test
         
+        % Before switch occurs, calculate block performance for CC change
+        % criterion
+        currBlock = TrialRecord.CurrentBlockCount;
+        blockToCalc = TrialRecord.BlockCount == currBlock;
+        blockTrials = TrialRecord.TrialErrors(ncl&completed&blockToCalc) == 0;
+        blockPerf = sum(blockTrials) / numel(blockTrials);
+        TrialRecord.User.BlockPerf = [TrialRecord.User.BlockPerf, blockPerf];
+        
         % Update CC here if blockPerf criterion met
         if TrialRecord.CurrentBlockCount >= nBlockTrigger && (sum(TrialRecord.User.BlockPerf(end-(nBlockTrigger-1):end) > blockThreshold) >= nBlockTrigger)
             TrialRecord.User.ChangeTriggered = 1;
+            % Record block number when cues changed
+            % Record name of new cues
         end
         
         switch context
