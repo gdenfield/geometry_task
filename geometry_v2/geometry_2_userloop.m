@@ -63,7 +63,7 @@ if isempty(TrialRecord.TrialErrors)
     first_context = randi([1,2]);
     context = first_context;
     TrialRecord.User.SC = 0;
-    TrialRecord.User.ChangeTriggered = 0;
+    TrialRecord.User.ChangeTriggeredAtBlock = [];
     TrialRecord.User.CL_trials = [];
     TrialRecord.User.BlockPerf = [];
     
@@ -107,9 +107,19 @@ if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && cri
         
         % Update CC here if blockPerf criterion met
         if TrialRecord.CurrentBlockCount >= nBlockTrigger && (sum(TrialRecord.User.BlockPerf(end-(nBlockTrigger-1):end) > blockThreshold) >= nBlockTrigger)
-            TrialRecord.User.ChangeTriggered = 1;
             % Record block number when cues changed
-            % Record name of new cues
+            TrialRecord.User.ChangeTriggeredAtBlock = [TrialRecord.User.ChangeTriggeredAtBlock, TrialRecord.CurrentBlockCount+1];
+            % Pick new context cues
+            d = 'C:\Users\silvia_ML\Documents\geometry_task\diag_CC\';
+            f = dir([d '*.png']);
+            n = numel(f);
+            idx = randperm(n, 2);
+            ccOneName = f(idx(1)).name;
+            ccTwoName = f(idx(2)).name;
+            
+            % Record name of new cues, copy to task dir, copy to used dir,
+            % ensure no repeats
+            
         end
         
         switch context
