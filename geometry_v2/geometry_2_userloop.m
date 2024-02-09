@@ -131,7 +131,8 @@ if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && cri
             TrialRecord.User.ccOneName = f(idx(1)).name;
             TrialRecord.User.ccTwoName = f(idx(2)).name;
             
-            % Record name of new cues, copy to task dir, move to used dir
+            % Record name of new cues, copy to task dir, move to used dir,
+            % copy over old cc_1 and cc_2 names
             TrialRecord.User.NewCuesOnes{TrialRecord.User.cueCounter} = TrialRecord.User.ccOneName;
             TrialRecord.User.NewCuesTwos{TrialRecord.User.cueCounter} = TrialRecord.User.ccTwoName;
             
@@ -140,6 +141,9 @@ if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && cri
             
             movefile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC','f')
             movefile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC','f')
+             
+            copyfile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\cc_1.png','f')
+            copyfile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\cc_2.png','f')
             
             TrialRecord.User.cueCounter = TrialRecord.User.cueCounter + 1;
         end
