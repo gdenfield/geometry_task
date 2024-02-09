@@ -2,7 +2,7 @@
 
 function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
 % Training Variables
-block_length = 30; % Number of trials before context switch
+block_length = 10; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
 n_fractals = 4; % 1-4, set to 4 for full set of fractals
 cl_counter = 2; % adjust for when to trigger correction loop
@@ -26,7 +26,7 @@ if isempty(trials_left_in_sequence) || TrialRecord.BlockChange %Reset counters i
     TrialRecord.User.contrast = 1;
     TrialRecord.User.switch = 0;
     TrialRecord.User.block_length = block_length;
-    
+
     %Update counters for correction loop
     TrialRecord.User.up_count = 0;
     TrialRecord.User.right_count = 0;
@@ -64,8 +64,18 @@ if isempty(TrialRecord.TrialErrors)
     first_context = randi([1,2]);
     context = first_context;
     TrialRecord.User.SC = 0;
+    TrialRecord.User.ChangeTriggeredAtBlock = [];
+    TrialRecord.User.ChangeTriggeredAtBlock = [TrialRecord.User.ChangeTriggeredAtBlock, 1];
     TrialRecord.User.CL_trials = [];
-    
+    TrialRecord.User.BlockPerf = [];
+    TrialRecord.User.NewCuesOnes = cell(10, 1);
+    TrialRecord.User.NewCuesTwos = cell(10, 1);
+    TrialRecord.User.cueCounter = 1;
+
+    % Specify name of CC to start
+    TrialRecord.User.ccOneName = 'cc_1.png';
+    TrialRecord.User.ccTwoName = 'cc_2.png';
+
     [TrialRecord.User.abfx, TrialRecord.User.abFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\soundfx\flap.mp3');
     [TrialRecord.User.infx, TrialRecord.User.inFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\soundfx\wrong-100536.mp3');
     [TrialRecord.User.rbfx, TrialRecord.User.rbFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\soundfx\point.mp3');
@@ -76,6 +86,11 @@ end
 % Switch Procedure
 threshold = 0.70; % Hit rate
 window = 10; % trials
+blockThreshold = 0.75; % blockwise performance threshold for CC switch
+
+% Number of blocks needed above threshold to trigger CC switch
+nBlockTrigger = 4;
+
 ncl = ~TrialRecord.User.CL_trials; %non-correction-loop trials
 completed = ismember(TrialRecord.TrialErrors, 0:4);
 A = TrialRecord.TrialErrors(ncl&completed) == 0;
@@ -93,6 +108,47 @@ if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && cri
     TrialRecord.User.switch = 1; % once triggered, stay triggered!
     switch_test = randi([0,1]); % Determine if actual switch will occur
     if switch_test
+
+        % Before switch occurs, calculate block performance for CC change
+        % criterion
+        currBlock = TrialRecord.CurrentBlockCount;
+        blockToCalc = TrialRecord.BlockCount == currBlock;
+        blockTrials = TrialRecord.TrialErrors(ncl&completed&blockToCalc) == 0;
+        blockPerf = sum(blockTrials) / numel(blockTrials);
+        TrialRecord.User.BlockPerf = [TrialRecord.User.BlockPerf, blockPerf];
+
+        % Update CC here if blockPerf criterion met
+        if (TrialRecord.CurrentBlockCount - (TrialRecord.User.ChangeTriggeredAtBlock(end)-1)) >= nBlockTrigger ...
+                && (sum(TrialRecord.User.BlockPerf(end-(nBlockTrigger-1):end) > blockThreshold) >= nBlockTrigger)
+
+            % Record block number when cues changed
+            TrialRecord.User.ChangeTriggeredAtBlock = [TrialRecord.User.ChangeTriggeredAtBlock, TrialRecord.CurrentBlockCount+1];
+
+            % Pick new context cues
+            d = 'C:\Users\silvia_ML\Documents\geometry_task\diag_CC\';
+            f = dir([d '*.png']);
+            n = numel(f);
+            idx = randperm(n, 2);
+            TrialRecord.User.ccOneName = f(idx(1)).name;
+            TrialRecord.User.ccTwoName = f(idx(2)).name;
+
+            % Record name of new cues, copy to task dir, move to used dir,
+            % copy over old cc_1 and cc_2 names
+            TrialRecord.User.NewCuesOnes{TrialRecord.User.cueCounter} = TrialRecord.User.ccOneName;
+            TrialRecord.User.NewCuesTwos{TrialRecord.User.cueCounter} = TrialRecord.User.ccTwoName;
+
+            copyfile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2','f')
+            copyfile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2','f')
+
+            movefile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC','f')
+            movefile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC','f')
+
+            copyfile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\cc_1.png','f')
+            copyfile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\cc_2.png','f')
+
+            TrialRecord.User.cueCounter = TrialRecord.User.cueCounter + 1;
+        end
+
         switch context
             case 1
                 context = 2;
@@ -128,7 +184,7 @@ if ~isempty(TrialRecord.TrialErrors)
         disp('Not CL Trial')
     end
 end
-    
+
 disp(['     trials left: ' num2str(trials_left_in_sequence(1:4)) ' || ' num2str(trials_left_in_sequence(5:8))])
 disp(['  correct counts: ' num2str(correct_counts(1:4)) ' || ' num2str(correct_counts(5:8))])
 disp(['incorrect counts: ' num2str(incorrect_counts(1:4)) ' || ' num2str(incorrect_counts(5:8))])
@@ -167,7 +223,7 @@ if ~isempty(TrialRecord.TrialErrors)
 end
 
 % Stimuli
-image_list = {'stim_21.bmp','stim_81.bmp','stim_82.bmp', 'stim_95.bmp', 'cc_1.png', 'cc_2.png'};
+image_list = {'stim_21.bmp','stim_81.bmp','stim_82.bmp', 'stim_95.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName};
 stimulus = image_list{chosen_condition(1)};
 ctx_cue = image_list{chosen_condition(2)};
 
