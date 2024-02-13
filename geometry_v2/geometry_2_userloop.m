@@ -2,7 +2,7 @@
 
 function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
 % Training Variables
-block_length = 10; % Number of trials before context switch
+block_length = 30; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
 n_fractals = 4; % 1-4, set to 4 for full set of fractals
 cl_counter = 2; % adjust for when to trigger correction loop
@@ -89,7 +89,7 @@ window = 10; % trials
 blockThreshold = 0.75; % blockwise performance threshold for CC switch
 
 % Number of blocks needed above threshold to trigger CC switch
-nBlockTrigger = 4;
+nBlockTrigger = 6;
 
 ncl = ~TrialRecord.User.CL_trials; %non-correction-loop trials
 completed = ismember(TrialRecord.TrialErrors, 0:4);
@@ -139,12 +139,12 @@ if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && cri
 
             copyfile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2','f')
             copyfile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2','f')
-
-            movefile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC','f')
-            movefile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC','f')
-
+            
             copyfile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\cc_1.png','f')
             copyfile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\cc_2.png','f')
+           
+            movefile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC','f')
+            movefile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC','f')
 
             TrialRecord.User.cueCounter = TrialRecord.User.cueCounter + 1;
         end
