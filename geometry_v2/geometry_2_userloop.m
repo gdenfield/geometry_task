@@ -4,7 +4,7 @@ function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,Tri
 % Training Variables
 block_length = 10; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
-n_fractals = 4; % 1-4, set to 4 for full set of fractals
+n_fractals = 8; % 1-4, set to 4 for full set of fractals
 
 % Initialization
 C = [];
@@ -48,15 +48,9 @@ down = [0 -target_distance];
 left = [-target_distance 0];
 
 target_color = [255 255 255];
-conditions =... %Context 1: rows 1-4, Context 2: rows 5-8
-   [1 5;  % [stimulus ctx_cue]
-    2 5;
-    3 5;
-    4 5;
-    1 6;
-    2 6;
-    3 6;
-    4 6];
+% Context 1: rows 1-8, Context 2: rows 9-16
+% [stimulus ctx_cue]
+conditions = [repmat(1:n_fractals, 1, 2)', [repmat(n_fractals + 1, 1, n_fractals)'; repmat(n_fractals + 2, 1, n_fractals)']];
 
 % If first trial, randomly select block and load sounds
 if isempty(TrialRecord.TrialErrors)
@@ -184,14 +178,14 @@ if ~isempty(TrialRecord.TrialErrors)
     end
 end
     
-disp(['     trials left: ' num2str(trials_left_in_sequence(1:4)) ' || ' num2str(trials_left_in_sequence(5:8))])
-disp(['  correct counts: ' num2str(correct_counts(1:4)) ' || ' num2str(correct_counts(5:8))])
-disp(['incorrect counts: ' num2str(incorrect_counts(1:4)) ' || ' num2str(incorrect_counts(5:8))])
+disp(['     trials left: ' num2str(trials_left_in_sequence(1:n_fractals)) ' || ' num2str(trials_left_in_sequence((1:n_fractals)+n_fractals))])
+disp(['  correct counts: ' num2str(correct_counts(1:n_fractals)) ' || ' num2str(correct_counts((1:n_fractals)+n_fractals))])
+disp(['incorrect counts: ' num2str(incorrect_counts(1:n_fractals)) ' || ' num2str(incorrect_counts((1:n_fractals)+n_fractals))])
 
 %Reset sequence count if each fractal has been encountered enough times -
 
 
-if sum(trials_left_in_sequence(1,(1:4)+( (context - 1) * 4))) == 0
+if sum(trials_left_in_sequence(1,(1:n_fractals)+( (context - 1) * n_fractals))) == 0 %ADJUST HERE FOR SUBSET CONDITIONS
     trials_left_in_sequence = sequence_depth + zeros(1,2*n_fractals);
     TrialRecord.User.cond_count = zeros(1,2*n_fractals); %09/22/23 GD: reset cond_counter each block
 end
@@ -204,7 +198,7 @@ if CL_trials(end) == 1 % if CL trial, repeat condition
     chosen_condition = conditions(condition,:);
 else % if not CL
     while true
-    condition = randi(n_fractals)+((context-1)*4);
+    condition = randi(n_fractals)+((context-1)*n_fractals); % condition numbering depends on n_fractals %ADJUST HERE FOR SUBSET CONDITIONS
     if trials_left_in_sequence(condition) ~= 0
         chosen_condition = conditions(condition,:);
         break
@@ -222,7 +216,7 @@ if ~isempty(TrialRecord.TrialErrors)
 end
 
 % Stimuli
-image_list = {'stim_21.bmp','stim_81.bmp','stim_82.bmp', 'stim_95.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName};
+image_list = {'stim_21.bmp','stim_81.bmp','stim_82.bmp', 'stim_95.bmp', 'stim_A.bmp','stim_B.bmp','stim_C.bmp', 'stim_D.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName};
 stimulus = image_list{chosen_condition(1)};
 ctx_cue = image_list{chosen_condition(2)};
 
