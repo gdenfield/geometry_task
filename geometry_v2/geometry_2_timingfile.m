@@ -377,7 +377,7 @@ catch
 end
 
 disp('10-trial average')
-disp(table([ctx1_10; ctx2_10], [s1_10; s9_10], [s2_10; s10_10], [s3_10; s11_10], [s4_10; s12_10],[s5_10; s13_10], [s6_10; s14_10], [s7_10; s11_15], [s8_10; s16_10], 'VariableNames',{'Combined', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8'},'RowNames',{'C1','C2'}));
+disp(table([ctx1_10; ctx2_10], [s1_10; s9_10], [s2_10; s10_10], [s3_10; s11_10], [s4_10; s12_10],[s5_10; s13_10], [s6_10; s14_10], [s7_10; s15_10], [s8_10; s16_10], 'VariableNames',{'Combined', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8'},'RowNames',{'C1','C2'}));
 
 dashboard(1, sprintf([num2str(performance_window) '-Trial HR: %.2f, Overall HR: %.2f'], running_HR*100, hit_rate_2(allTrials)*100));
 dashboard(7, sprintf('Percent Early Choices: %.2f', sum(TrialRecord.TrialErrors==7)/length(TrialRecord.TrialErrors)*100),[255 0 0]); 
