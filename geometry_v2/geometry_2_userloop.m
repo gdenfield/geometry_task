@@ -4,7 +4,7 @@ function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,Tri
 % Training Variables
 block_length = 10; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
-n_fractals = 8; % 1-4, set to 4 for full set of fractals
+n_fractals = 8; % 1-8, set to 8 for full set of fractals
 
 % Initialization
 C = [];
@@ -216,7 +216,7 @@ if ~isempty(TrialRecord.TrialErrors)
 end
 
 % Stimuli
-image_list = {'stim_21.bmp','stim_81.bmp','stim_82.bmp', 'stim_95.bmp', 'stim_A.bmp','stim_B.bmp','stim_C.bmp', 'stim_D.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName};
+image_list = {'stim_21.bmp','stim_81.bmp','stim_82.bmp', 'stim_95.bmp', 'stim_A6.bmp','stim_A12.bmp','stim_A14.bmp', 'stim_B5.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName};
 stimulus = image_list{chosen_condition(1)};
 ctx_cue = image_list{chosen_condition(2)};
 
