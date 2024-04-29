@@ -2,7 +2,7 @@
 
 function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
 % Training Variables
-block_length = 10; % Number of trials before context switch
+block_length = 320; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
 n_fractals = 8; % 1-8, set to 8 for full set of fractals
 
