@@ -2,9 +2,10 @@
 
 function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
 % Training Variables
-block_length = 320; % Number of trials before context switch
+block_length = 80; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
 n_fractals = 8; % 1-8, set to 8 for full set of fractals
+cl_counter = 1; % adjust for when to trigger correction loop
 
 % Initialization
 C = [];
@@ -54,7 +55,7 @@ conditions = [repmat(1:n_fractals, 1, 2)', [repmat(n_fractals + 1, 1, n_fractals
 
 % If first trial, randomly select block and load sounds
 if isempty(TrialRecord.TrialErrors)
-    first_context = 1; %randi([1,2]); %ADJUST HERE 
+    first_context = randi([1,2]); %ADJUST HERE TO FIX STARTING CONTEXT
     context = first_context;
     TrialRecord.User.SC = 0;
     TrialRecord.User.ChangeTriggeredAtBlock = [];
@@ -162,10 +163,10 @@ if ~isempty(TrialRecord.TrialErrors)
         correct_counts(TrialRecord.CurrentCondition) = correct_counts(TrialRecord.CurrentCondition)+1;
         CL_trials = [CL_trials 0];
         disp('Correct!')
-    elseif ismember(TrialRecord.TrialErrors(end), [1 2 3 4]) && any(TrialRecord.User.cond_count == 2) % 09/22/23 GD: need 2 wrongs on a condition to trigger CL
+    elseif ismember(TrialRecord.TrialErrors(end), [1 2 3 4]) && any(TrialRecord.User.cond_count == cl_counter) % 09/22/23 GD: need 2 wrongs on a condition to trigger CL
         %trials_left_in_sequence(TrialRecord.CurrentCondition) = trials_left_in_sequence(TrialRecord.CurrentCondition)+1;
-        TrialRecord.User.cond_to_repeat = find(TrialRecord.User.cond_count == 2);
-        TrialRecord.User.cond_count(find(TrialRecord.User.cond_count == 2)) = 0;
+        TrialRecord.User.cond_to_repeat = find(TrialRecord.User.cond_count == cl_counter);
+        TrialRecord.User.cond_count(find(TrialRecord.User.cond_count == cl_counter)) = 0;
         incorrect_counts(TrialRecord.CurrentCondition) = incorrect_counts(TrialRecord.CurrentCondition)+1;
         CL_trials = [CL_trials 1];
         disp('CL Trial!')
@@ -185,7 +186,7 @@ disp(['incorrect counts: ' num2str(incorrect_counts(1:n_fractals)) ' || ' num2st
 %Reset sequence count if each fractal has been encountered enough times -
 
 
-if sum(trials_left_in_sequence(1,(5:n_fractals)+( (context - 1) * n_fractals))) == 0 %ADJUST HERE FOR SUBSET CONDITIONS
+if sum(trials_left_in_sequence(1,(1:n_fractals)+( (context - 1) * n_fractals))) == 0 %ADJUST HERE FOR SUBSET CONDITIONS
     trials_left_in_sequence = sequence_depth + zeros(1,2*n_fractals);
     TrialRecord.User.cond_count = zeros(1,2*n_fractals); %09/22/23 GD: reset cond_counter each block
 end
@@ -198,8 +199,8 @@ if CL_trials(end) == 1 % if CL trial, repeat condition
     chosen_condition = conditions(condition,:);
 else % if not CL
     while true
-    %condition = randi(n_fractals)+((context-1)*n_fractals); % condition numbering depends on n_fractals %ADJUST HERE FOR SUBSET CONDITIONS
-    condition = (randi(4)+4)+((context-1)*n_fractals);
+    condition = randi(n_fractals)+((context-1)*n_fractals); % condition numbering depends on n_fractals %ADJUST HERE FOR SUBSET CONDITIONS
+    %condition = (randi(4)+4)+((context-1)*n_fractals); %ADJUST HERE FOR SUBSET CONDITIONS
     if trials_left_in_sequence(condition) ~= 0
         chosen_condition = conditions(condition,:);
         break
