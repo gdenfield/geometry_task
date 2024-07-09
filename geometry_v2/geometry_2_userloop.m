@@ -2,8 +2,8 @@
 
 function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
 % Training Variables
-block_length = 80; % Number of trials before context switch
-sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
+block_length = 32; % Number of trials before context switch
+sequence_depth = repmat([0, 0, 0, 0, 2, 2, 2, 2], 1, 2); % Number of times each condition should be shown in a given trial sequence; ADJUST HERE FOR SUBSET FRACTALS
 n_fractals = 8; % 1-8, set to 8 for full set of fractals
 cl_counter = 1; % adjust for when to trigger correction loop
 
@@ -78,12 +78,12 @@ end
 
 
 % Switch Procedure
-threshold = 0.70; % Hit rate
-window = 10; % trials
-blockThreshold = 0.85; % blockwise performance threshold for CC switch
+threshold = 0.60; % Hit rate
+window = 8; % trials
+blockThreshold = 0.68; % blockwise performance threshold for CC switch
 
 % Number of blocks needed above threshold to trigger CC switch
-nBlockTrigger = 8; 
+nBlockTrigger = 6; 
 
 ncl = ~TrialRecord.User.CL_trials; %non-correction-loop trials
 completed = ismember(TrialRecord.TrialErrors, 0:4);
@@ -133,12 +133,12 @@ if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && cri
             
             copyfile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2','f')
             copyfile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2','f')
-            
-            movefile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC','f')
-            movefile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC','f')
              
             copyfile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\cc_1.png','f')
             copyfile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\cc_2.png','f')
+            
+            movefile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC','f')
+            movefile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC','f')
             
             TrialRecord.User.cueCounter = TrialRecord.User.cueCounter + 1;
         end
@@ -186,7 +186,7 @@ disp(['incorrect counts: ' num2str(incorrect_counts(1:n_fractals)) ' || ' num2st
 %Reset sequence count if each fractal has been encountered enough times -
 
 
-if sum(trials_left_in_sequence(1,(1:n_fractals)+( (context - 1) * n_fractals))) == 0 %ADJUST HERE FOR SUBSET CONDITIONS
+if sum(trials_left_in_sequence(1,(5:n_fractals)+( (context - 1) * n_fractals))) == 0 %ADJUST HERE FOR SUBSET CONDITIONS
     trials_left_in_sequence = sequence_depth + zeros(1,2*n_fractals);
     TrialRecord.User.cond_count = zeros(1,2*n_fractals); %09/22/23 GD: reset cond_counter each block
 end
@@ -199,8 +199,8 @@ if CL_trials(end) == 1 % if CL trial, repeat condition
     chosen_condition = conditions(condition,:);
 else % if not CL
     while true
-    condition = randi(n_fractals)+((context-1)*n_fractals); % condition numbering depends on n_fractals %ADJUST HERE FOR SUBSET CONDITIONS
-    %condition = (randi(4)+4)+((context-1)*n_fractals); %ADJUST HERE FOR SUBSET CONDITIONS
+    %condition = randi(n_fractals)+((context-1)*n_fractals); % condition numbering depends on n_fractals %ADJUST HERE FOR SUBSET CONDITIONS
+    condition = (randi(4)+4)+((context-1)*n_fractals); %ADJUST HERE FOR SUBSET CONDITIONS
     if trials_left_in_sequence(condition) ~= 0
         chosen_condition = conditions(condition,:);
         break
