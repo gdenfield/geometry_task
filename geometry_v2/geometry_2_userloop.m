@@ -3,7 +3,7 @@
 function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
 % Training Variables
 block_length = 32; % Number of trials before context switch
-sequence_depth = repmat([2, 0, 0, 0, 2, 2, 2, 2], 1, 2); % Number of times each condition should be shown in a given trial sequence; ADJUST HERE FOR SUBSET FRACTALS
+sequence_depth = repmat([2, 0, 2, 0, 2, 2, 2, 2], 1, 2); % Number of times each condition should be shown in a given trial sequence; ADJUST HERE FOR SUBSET FRACTALS
 n_fractals = 8; % 1-8, set to 8 for full set of fractals
 cl_counter = 1; % adjust for when to trigger correction loop
 
@@ -206,8 +206,10 @@ else % if not CL
         if context == 1
             if condProb >= 75
                 fractal = 8;
-            elseif condProb >= 50 && condProb < 75
+            elseif condProb >= 62.5 && condProb < 75
                 fractal = 7;
+            elseif condProb >= 50 && condProb < 62.5
+                fractal = 3;
             elseif condProb >= 25 && condProb < 50
                 fractal = 6;
             elseif condProb >= 12.5 && condProb < 25
@@ -218,8 +220,10 @@ else % if not CL
         elseif context == 2
             if condProb >= 75
                 fractal = 8;
-            elseif condProb >= 50 && condProb < 75
+            elseif condProb >= 62.5 && condProb < 75
                 fractal = 5;
+            elseif condProb >= 50 && condProb < 62.5
+                fractal = 3;
             elseif condProb >= 25 && condProb < 50
                 fractal = 6;
             elseif condProb >= 12.5 && condProb < 25
@@ -246,7 +250,7 @@ if ~isempty(TrialRecord.TrialErrors)
 end
 
 % Stimuli
-image_list = {'stim_1539v4.bmp','stim_81.bmp','stim_82.bmp', 'stim_95.bmp', 'stim_A6.bmp','stim_A12.bmp','stim_A14.bmp', 'stim_B5.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName};
+image_list = {'stim_1539v4.bmp','stim_81.bmp','stim_0233v3.bmp', 'stim_95.bmp', 'stim_A6.bmp','stim_A12.bmp','stim_A14.bmp', 'stim_B5.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName};
 stimulus = image_list{chosen_condition(1)};
 ctx_cue = image_list{chosen_condition(2)};
 
