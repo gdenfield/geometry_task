@@ -78,9 +78,9 @@ end
 
 
 % Switch Procedure
-threshold = 0.60; % Hit rate
-window = 8; % trials
-blockThreshold = 0.68; % blockwise performance threshold for CC switch
+threshold = 0.65; % Hit rate
+window = 9; % trials
+blockThreshold = 0.72; % blockwise performance threshold for CC switch
 
 % Number of blocks needed above threshold to trigger CC switch
 nBlockTrigger = 6; 
