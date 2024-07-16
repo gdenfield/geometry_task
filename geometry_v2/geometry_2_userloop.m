@@ -204,15 +204,15 @@ else % if not CL
         % condition = (randi(4)+4)+((context-1)*n_fractals); % for fractals 5-8
         condProb = rand(1)*100;
         if context == 1
-            if condProb >= 75
+            if condProb >= 75 % opposes fractal 4
                 fractal = 8;
-            elseif condProb >= 62.5 && condProb < 75
+            elseif condProb >= 62.5 && condProb < 75 % opposes fractal 3
                 fractal = 7;
-            elseif condProb >= 50 && condProb < 62.5
+            elseif condProb >= 50 && condProb < 62.5 % opposes fractal 7
                 fractal = 3;
-            elseif condProb >= 25 && condProb < 50
+            elseif condProb >= 25 && condProb < 50 % opposes fractal 2
                 fractal = 6;
-            elseif condProb >= 12.5 && condProb < 25
+            elseif condProb >= 12.5 && condProb < 25 % opposes fractal 1
                 fractal = 5;
             else
                 fractal = 1;
