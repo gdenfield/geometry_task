@@ -3,7 +3,7 @@
 function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
 % Training Variables
 block_length = 32; % Number of trials before context switch
-sequence_depth = repmat([2, 2, 2, 2, 2, 0, 0, 0], 1, 2); % Number of times each condition should be shown in a given trial sequence
+sequence_depth = repmat([2, 2, 2, 2, 2, 0, 2, 0], 1, 2); % Number of times each condition should be shown in a given trial sequence
 n_fractals = 8; % 1-4, set to 4 for full set of fractals
 cl_counter = 1; % adjust for when to trigger correction loop
 
@@ -152,24 +152,28 @@ else % if not CL
                 fractal = 1;
             elseif condProb >= 50 && condProb < 75 % opposes fractal 6
                 fractal = 2;
-            elseif condProb >= 25 && condProb < 50 % opposes fractal 7
+            elseif condProb >= 37.5 && condProb < 50 % opposes fractal 7
                 fractal = 3;
+            elseif condProb >= 25 && condProb < 37.5
+                fractal = 7;
             elseif condProb < 25 % opposes fractal 8
                 fractal = 4;
             else
                 fractal = 5;
             end
         elseif context == 2
-            if condProb >= 75 && condProb < 87.5 % opposes fractal 7
+            if condProb >= 87.5 % opposes fractal 1
+                fractal = 7;
+            elseif condProb >= 75 && condProb < 87.5 % opposes fractal 7
                 fractal = 1;
             elseif condProb >= 50 && condProb < 75 % opposes fractal 8
                 fractal = 2;
+            elseif condProb >= 37.5 && condProb < 50
+                fractal = 5;
             elseif condProb >= 25 && condProb < 37.5 % opposes fractal 5
                 fractal = 3;
-            elseif condProb < 25 % opposes fractal 6
+            else  % opposes fractal 6
                 fractal = 4;
-            else
-                fractal = 5;
             end
         end
         condition = fractal + ((context-1)*n_fractals);

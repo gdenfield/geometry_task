@@ -180,8 +180,8 @@ if ~isempty(TrialRecord.TrialErrors)
 end
     
 disp(['     trials left: ' num2str(trials_left_in_sequence(1:n_fractals)) ' || ' num2str(trials_left_in_sequence((1:n_fractals)+n_fractals))])
-disp(['  correct counts: ' num2str(correct_counts(1:n_fractals)) ' || ' num2str(correct_counts((1:n_fractals)+n_fractals))])
-disp(['incorrect counts: ' num2str(incorrect_counts(1:n_fractals)) ' || ' num2str(incorrect_counts((1:n_fractals)+n_fractals))])
+% disp(['  correct counts: ' num2str(correct_counts(1:n_fractals)) ' || ' num2str(correct_counts((1:n_fractals)+n_fractals))])
+% disp(['incorrect counts: ' num2str(incorrect_counts(1:n_fractals)) ' || ' num2str(incorrect_counts((1:n_fractals)+n_fractals))])
 
 %Reset sequence count if each fractal has been encountered enough times -
 
@@ -250,7 +250,7 @@ if ~isempty(TrialRecord.TrialErrors)
 end
 
 % Stimuli
-image_list = {'stim_1539v4.bmp','stim_81.bmp','stim_0233v3.bmp', 'stim_95.bmp', 'stim_A6.bmp','stim_A12.bmp','stim_A14.bmp', 'stim_B5.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName};
+image_list = {'stim_1539v4.bmp','stim_81.bmp','stim_0233v3.bmp', 'stim_95.bmp', 'stim_1960v1.bmp','stim_A12.bmp','stim_A14.bmp', 'stim_B5.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName};
 stimulus = image_list{chosen_condition(1)};
 ctx_cue = image_list{chosen_condition(2)};
 
