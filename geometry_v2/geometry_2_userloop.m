@@ -83,7 +83,7 @@ window = 9; % trials
 blockThreshold = 0.72; % blockwise performance threshold for CC switch
 
 % Number of blocks needed above threshold to trigger CC switch
-nBlockTrigger = 6; 
+nBlockTrigger = 8; 
 
 ncl = ~TrialRecord.User.CL_trials; %non-correction-loop trials
 completed = ismember(TrialRecord.TrialErrors, 0:4);
