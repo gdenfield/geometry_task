@@ -3,8 +3,8 @@
 function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
 % Training Variables
 block_length = 32; % Number of trials before context switch
-sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
-n_fractals = 4; % 1-4, set to 4 for full set of fractals
+sequence_depth = repmat([2, 2, 2, 2, 2, 0, 2, 2], 1, 2); % Number of times each condition should be shown in a given trial sequence
+n_fractals = 8; % 1-4, set to 4 for full set of fractals
 cl_counter = 1; % adjust for when to trigger correction loop
 
 % Initialization
@@ -49,15 +49,9 @@ down = [0 -target_distance];
 left = [-target_distance 0];
 
 target_color = [255 255 255];
-conditions =... %Context 1: rows 1-4, Context 2: rows 5-8
-   [1 5;  % [stimulus ctx_cue]
-    2 5;
-    3 5;
-    4 5;
-    1 6;
-    2 6;
-    3 6;
-    4 6];
+% Context 1: rows 1-8, Context 2: rows 9-16
+% [stimulus ctx_cue]
+conditions = [repmat(1:n_fractals, 1, 2)', [repmat(n_fractals + 1, 1, n_fractals)'; repmat(n_fractals + 2, 1, n_fractals)']];
 
 % If first trial, randomly select block and load sounds
 if isempty(TrialRecord.TrialErrors)
@@ -129,14 +123,14 @@ if ~isempty(TrialRecord.TrialErrors)
     end
 end
     
-disp(['     trials left: ' num2str(trials_left_in_sequence(1:4)) ' || ' num2str(trials_left_in_sequence(5:8))])
-disp(['  correct counts: ' num2str(correct_counts(1:4)) ' || ' num2str(correct_counts(5:8))])
-disp(['incorrect counts: ' num2str(incorrect_counts(1:4)) ' || ' num2str(incorrect_counts(5:8))])
+disp(['     trials left: ' num2str(trials_left_in_sequence(1:n_fractals)) ' || ' num2str(trials_left_in_sequence((1:n_fractals)+n_fractals))])
+disp(['  correct counts: ' num2str(correct_counts(1:n_fractals)) ' || ' num2str(correct_counts((1:n_fractals)+n_fractals))])
+disp(['incorrect counts: ' num2str(incorrect_counts(1:n_fractals)) ' || ' num2str(incorrect_counts((1:n_fractals)+n_fractals))])
 
 %Reset sequence count if each fractal has been encountered enough times -
 
 
-if sum(trials_left_in_sequence(1,(1:4)+( (context - 1) * 4))) == 0
+if sum(trials_left_in_sequence(1,(5:n_fractals)+( (context - 1) * n_fractals))) == 0 %ADJUST HERE FOR SUBSET CONDITIONS
     trials_left_in_sequence = sequence_depth + zeros(1,2*n_fractals);
     TrialRecord.User.cond_count = zeros(1,2*n_fractals); %09/22/23 GD: reset cond_counter each block
 end
@@ -149,7 +143,44 @@ if CL_trials(end) == 1 % if CL trial, repeat condition
     chosen_condition = conditions(condition,:);
 else % if not CL
     while true
-    condition = randi(n_fractals)+((context-1)*4);
+        % *** ADJUST HERE FOR SUBSET CONDITIONS ***
+        % condition = randi(n_fractals)+((context-1)*n_fractals); % condition numbering depends on n_fractals %ADJUST HERE FOR SUBSET CONDITIONS
+        % condition = (randi(4)+4)+((context-1)*n_fractals); % for fractals 5-8
+        condProb = rand(1)*100;
+        if context == 1
+            if condProb >= 87.5 % opposes fractal 1
+                fractal = 5;
+            elseif condProb >= 75 && condProb < 87.5 % opposes fractal 5
+                fractal = 1;
+            elseif condProb >= 50 && condProb < 75 % opposes fractal 6
+                fractal = 2;
+            elseif condProb >= 37.5 && condProb < 50 % opposes fractal 7
+                fractal = 3;
+            elseif condProb >= 25 && condProb < 37.5
+                fractal = 7;
+            elseif condProb >= 12.5 && condProb < 25 % opposes fractal 8
+                fractal = 4;
+            else
+                fractal = 8;
+            end
+        elseif context == 2
+            if condProb >= 87.5 % opposes fractal 1
+                fractal = 7;
+            elseif condProb >= 75 && condProb < 87.5 % opposes fractal 7
+                fractal = 1;
+            elseif condProb >= 62.5 && condProb < 75 % opposes fractal 8
+                fractal = 2;
+            elseif condProb >= 50 && condProb < 62.5 % opposes fractal 2
+                fractal = 8;
+            elseif condProb >= 37.5 && condProb < 50 % opposes fractal 3
+                fractal = 5;
+            elseif condProb >= 25 && condProb < 37.5 % opposes fractal 5
+                fractal = 3;
+            else  % opposes fractal 6
+                fractal = 4;
+            end
+        end
+        condition = fractal + ((context-1)*n_fractals);
     if trials_left_in_sequence(condition) ~= 0
         chosen_condition = conditions(condition,:);
         break
@@ -167,7 +198,7 @@ if ~isempty(TrialRecord.TrialErrors)
 end
 
 % Stimuli
-image_list = {'stim_21.bmp','stim_81.bmp','stim_82.bmp', 'stim_95.bmp', 'cc_1_train.png', 'cc_2_train.png'};
+image_list = {'stim_21.bmp','stim_81.bmp','stim_82.bmp', 'stim_95.bmp', 'stim_1539v4.bmp', 'stim_0016v2.bmp', 'stim_0233v3.bmp','stim_0042v2.bmp', 'cc_1_train.png', 'cc_2_train.png'};
 stimulus = image_list{chosen_condition(1)};
 ctx_cue = image_list{chosen_condition(2)};
 

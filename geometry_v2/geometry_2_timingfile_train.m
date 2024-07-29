@@ -275,6 +275,14 @@ s5 = conditions == 5;
 s6 = conditions == 6;
 s7 = conditions == 7;
 s8 = conditions == 8;
+s9 = conditions == 9;
+s10 = conditions == 10;
+s11 = conditions == 11;
+s12 = conditions == 12;
+s13 = conditions == 13;
+s14 = conditions == 14;
+s15 = conditions == 15;
+s16 = conditions == 16;
 
 if length(TrialRecord.TrialErrors) <= performance_window
     windowTrials = TrialRecord.TrialErrors;
@@ -294,6 +302,14 @@ s5t = allTrials(s5&ncl);
 s6t = allTrials(s6&ncl);
 s7t = allTrials(s7&ncl);
 s8t = allTrials(s8&ncl);
+s9t = allTrials(s9&ncl);
+s10t = allTrials(s10&ncl);
+s11t = allTrials(s11&ncl);
+s12t = allTrials(s12&ncl);
+s13t = allTrials(s13&ncl);
+s14t = allTrials(s14&ncl);
+s15t = allTrials(s15&ncl);
+s16t = allTrials(s16&ncl);
 
 ctx1_HR = hit_rate_2(c1t);
 ctx2_HR = hit_rate_2(c2t);
@@ -305,8 +321,16 @@ s5_HR = hit_rate_2(s5t);
 s6_HR = hit_rate_2(s6t);
 s7_HR = hit_rate_2(s7t);
 s8_HR = hit_rate_2(s8t);
+s9_HR = hit_rate_2(s9t);
+s10_HR = hit_rate_2(s10t);
+s11_HR = hit_rate_2(s11t);
+s12_HR = hit_rate_2(s12t);
+s13_HR = hit_rate_2(s13t);
+s14_HR = hit_rate_2(s14t);
+s15_HR = hit_rate_2(s15t);
+s16_HR = hit_rate_2(s16t);
 
-disp(table([ctx1_HR; ctx2_HR], [s1_HR; s5_HR], [s2_HR; s6_HR], [s3_HR; s7_HR], [s4_HR; s8_HR],'VariableNames',{'Combined', 'F1', 'F2', 'F3', 'F4'},'RowNames',{'C1','C2'}));
+disp(table([ctx1_HR; ctx2_HR], [s1_HR; s9_HR], [s2_HR; s10_HR], [s3_HR; s11_HR], [s4_HR; s12_HR], [s5_HR; s13_HR], [s6_HR; s14_HR], [s7_HR; s15_HR], [s8_HR; s16_HR], 'VariableNames',{'Combined', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8'},'RowNames',{'C1','C2'}));
 
 try
     ctx1_10 = hit_rate_2(c1t(end-10:end));
@@ -314,30 +338,46 @@ try
     s2_10 = hit_rate_2(s2t(end-10:end));
     s3_10 = hit_rate_2(s3t(end-10:end));
     s4_10 = hit_rate_2(s4t(end-10:end));
+    s5_10 = hit_rate_2(s5t(end-10:end));
+    s6_10 = hit_rate_2(s6t(end-10:end));
+    s7_10 = hit_rate_2(s7t(end-10:end));
+    s8_10 = hit_rate_2(s8t(end-10:end));
 catch
     ctx1_10 = hit_rate_2(c1t);
     s1_10 = hit_rate_2(s1t);
     s2_10 = hit_rate_2(s2t);
     s3_10 = hit_rate_2(s3t);
     s4_10 = hit_rate_2(s4t);
-end
-
-try
-    ctx2_10 = hit_rate_2(c2t(end-10:end));
-    s5_10 = hit_rate_2(s5t(end-10:end));
-    s6_10 = hit_rate_2(s6t(end-10:end));
-    s7_10 = hit_rate_2(s7t(end-10:end));
-    s8_10 = hit_rate_2(s8t(end-10:end));
-catch
-    ctx2_10 = hit_rate_2(c2t);
     s5_10 = hit_rate_2(s5t);
     s6_10 = hit_rate_2(s6t);
     s7_10 = hit_rate_2(s7t);
     s8_10 = hit_rate_2(s8t);
 end
 
+try
+    ctx2_10 = hit_rate_2(c2t(end-10:end));
+    s9_10 = hit_rate_2(s9t(end-10:end));
+    s10_10 = hit_rate_2(s10t(end-10:end));
+    s11_10 = hit_rate_2(s11t(end-10:end));
+    s12_10 = hit_rate_2(s12t(end-10:end));
+    s13_10 = hit_rate_2(s13t(end-10:end));
+    s14_10 = hit_rate_2(s14t(end-10:end));
+    s15_10 = hit_rate_2(s15t(end-10:end));
+    s16_10 = hit_rate_2(s16t(end-10:end));
+catch
+    ctx2_10 = hit_rate_2(c2t);
+    s9_10 = hit_rate_2(s9t);
+    s10_10 = hit_rate_2(s10t);
+    s11_10 = hit_rate_2(s11t);
+    s12_10 = hit_rate_2(s12t);
+    s13_10 = hit_rate_2(s13t);
+    s14_10 = hit_rate_2(s14t);
+    s15_10 = hit_rate_2(s15t);
+    s16_10 = hit_rate_2(s16t);
+end
+
 disp('10-trial average')
-disp(table([ctx1_10; ctx2_10], [s1_10; s5_10], [s2_10; s6_10], [s3_10; s7_10], [s4_10; s8_10],'VariableNames',{'Combined', 'F1', 'F2', 'F3', 'F4'},'RowNames',{'C1','C2'}));
+disp(table([ctx1_10; ctx2_10], [s1_10; s9_10], [s2_10; s10_10], [s3_10; s11_10], [s4_10; s12_10],[s5_10; s13_10], [s6_10; s14_10], [s7_10; s15_10], [s8_10; s16_10], 'VariableNames',{'Combined', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8'},'RowNames',{'C1','C2'}));
 
 dashboard(1, sprintf([num2str(performance_window) '-Trial HR: %.2f, Overall HR: %.2f'], running_HR*100, hit_rate_2(allTrials)*100));
 dashboard(7, sprintf('Percent Early Choices: %.2f', sum(TrialRecord.TrialErrors==7)/length(TrialRecord.TrialErrors)*100),[255 0 0]); 
@@ -451,13 +491,13 @@ if ~mul6.Success
 end
 
 %% REWARDS
-trial_correct = (ismember(TrialRecord.CurrentCondition, [1 8]) && mul6.ChosenTarget == up) || (ismember(TrialRecord.CurrentCondition, [2 5]) && mul6.ChosenTarget == right) || (ismember(TrialRecord.CurrentCondition, [3 6]) && mul6.ChosenTarget == down) || (ismember(TrialRecord.CurrentCondition, [4 7]) && mul6.ChosenTarget == left);
-small_reward_trial = ismember(TrialRecord.CurrentCondition,[3 4 5 8]); % Test for large/ small trial; gd 3/30/22
+trial_correct = (ismember(TrialRecord.CurrentCondition, [1 5 12 14]) && mul6.ChosenTarget == up) || (ismember(TrialRecord.CurrentCondition, [2 6 9 15]) && mul6.ChosenTarget == right) || (ismember(TrialRecord.CurrentCondition, [3 7 10 16]) && mul6.ChosenTarget == down) || (ismember(TrialRecord.CurrentCondition, [4 8 11 13]) && mul6.ChosenTarget == left);
+small_reward_trial = ismember(TrialRecord.CurrentCondition,[3 4 5 6 9 12 13 16]); % Test for large/ small trial; gd 3/30/22
 
 if trial_correct
     trialerror(0);
     
-    rx = rand(1); % Simple probabilistic reward implementation
+    rx = rand(1); % Option for probabilistic reward - currently not implemented
     if rx < 0.5
         ld = little_drops;
         bd = big_drops;

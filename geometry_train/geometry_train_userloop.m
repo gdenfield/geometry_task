@@ -2,7 +2,7 @@ function [C,timingfile,userdefined_trialholder] = geometry_train_userloop(MLConf
 %MJP 11/11/2020
 
 % Training variables
-block_length = Gwomwtry60; % Number of trials before context switch
+block_length = 60; % Number of trials before context switch
 sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
 CL_threshold = -1; % Number of errors for a given condition before starting correction loop
 CL_depth = 1; % Number of times condition will be repeated in CL
