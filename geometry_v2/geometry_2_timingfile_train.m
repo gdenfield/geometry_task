@@ -197,7 +197,7 @@ con4.add(tc);
 TrialRecord.User.CC = TrialRecord.CurrentTrialWithinBlock<=n_cc_trials || TrialRecord.User.SC;
 
 %Build Scene    
-if TrialRecord.User.CC || z<90
+if TrialRecord.User.CC || z<85
     CC_trials = [CC_trials 1];
     None_trials = [None_trials 0];
     if TrialRecord.User.SC

@@ -194,10 +194,11 @@ con4 = Concurrent(lh4);
 con4.add(tc);
 
 % Test for CC Trial
-TrialRecord.User.CC = TrialRecord.CurrentTrialWithinBlock<=n_cc_trials || TrialRecord.User.SC;
+%TrialRecord.User.CC = TrialRecord.CurrentTrialWithinBlock<=n_cc_trials || TrialRecord.User.SC;
+TrialRecord.User.CC = TrialRecord.CurrentTrialWithinBlock <= n_cc_trials || TrialRecord.CurrentTrialWithinBlock > 40 || TrialRecord.User.SC;
 
 %Build Scene    
-if TrialRecord.User.CC || z<85
+if TrialRecord.User.CC || z<90
     CC_trials = [CC_trials 1];
     None_trials = [None_trials 0];
     if TrialRecord.User.SC
@@ -207,7 +208,7 @@ if TrialRecord.User.CC || z<85
     end
     scene4 = create_scene(con4,[fixation_point FP_background ctx_cue stimulus]); %7/13/22 gd: added stimulus to cc scene
 
-    else
+else
     CC_trials = [CC_trials 0];
     None_trials = [None_trials 1];
     dashboard(2, 'None Trial', [255 255 255])
