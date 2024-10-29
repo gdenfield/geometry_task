@@ -57,10 +57,22 @@ conditions = [repmat(1:n_fractals, 1, 2)', [repmat(n_fractals + 1, 1, n_fractals
 if isempty(TrialRecord.TrialErrors)
     first_context = randi([1,2]); %ADJUST HERE TO FIX STARTING CONTEXT
     context = first_context;
+    
+    rewMult = randi([0,1]); % determine first reward multiplier value
+    if rewMult
+        fpColor = [50 205 50];
+    else
+        fpColor = [255 255 255];
+    end
+    TrialRecord.User.FP_color = fpColor;
+    
     TrialRecord.User.SC = 0;
     TrialRecord.User.ChangeTriggeredAtBlock = [];
     TrialRecord.User.ChangeTriggeredAtBlock = [TrialRecord.User.ChangeTriggeredAtBlock, 1];
     TrialRecord.User.CL_trials = [];
+    TrialRecord.User.BlockRewMult = [];
+    TrialRecord.User.BlockRewMult = [TrialRecord.User.BlockRewMult, rewMult];
+    TrialRecord.User.RewardGiven = [];
     TrialRecord.User.BlockPerf = [];
     TrialRecord.User.NewCuesOnes = cell(10, 1);
     TrialRecord.User.NewCuesTwos = cell(10, 1);
@@ -76,6 +88,8 @@ if isempty(TrialRecord.TrialErrors)
     [TrialRecord.User.rsfx, TrialRecord.User.rsFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v2\soundfx\interface-124464.mp3');
 end
 
+% Define fpColor
+fpColor = TrialRecord.User.FP_color;
 
 % Switch Procedure
 threshold = 0.59; % Hit rate
@@ -102,6 +116,16 @@ if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && cri
     TrialRecord.User.switch = 1; % once triggered, stay triggered!
     switch_test = randi([0,1]); % Determine if actual switch will occur
     if switch_test
+        
+        % Calculate if Reward Multiplier active
+        rewMult = randi([0,1]);
+        if rewMult
+            fpColor = [50 205 50];
+        else
+            fpColor = [255 255 255];
+        end
+        TrialRecord.User.BlockRewMult = [TrialRecord.User.BlockRewMult, rewMult];
+        TrialRecord.User.FP_color = fpColor;
         
         % Before switch occurs, calculate block performance for CC change
         % criterion
@@ -266,7 +290,7 @@ ctx_cue = image_list{chosen_condition(2)};
 %1: fixation_point
 C(1).Type = 'crc';
 C(1).Radius = 0.1;     % visual angle
-C(1).Color = [255 255 255];  % [R G B]
+C(1).Color = fpColor;  % [R G B]
 C(1).FillFlag = 1;
 C(1).Xpos = 0;
 C(1).Ypos = 0;
