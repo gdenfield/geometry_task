@@ -58,6 +58,7 @@ editable(...
     'double_thresh',...
     'blink_time',...
     'solenoid_time',...
+    'rew_multiplier',...
     'big_drops',...
     'little_drops',...
     'drop_gaps',...
@@ -119,6 +120,7 @@ n_cc_trials = 5; % # trials to show context cue independent of performance
 training_rewards = [0 0 0 0 0]; % change to 1 to turn on training rewards for given scene (1-5)
 training_reward_prob = .5; % probability of random reward delivery
 solenoid_time = 200; %ms
+rew_multiplier = 2;
 drop_gaps = 0; %ms
 little_drops = 1; %number of pulses
 big_drops = 2; %number of pulses
@@ -332,7 +334,7 @@ s15_HR = hit_rate_2(s15t);
 s16_HR = hit_rate_2(s16t);
 
 disp(table([ctx1_HR; ctx2_HR], [s1_HR; s9_HR], [s2_HR; s10_HR], [s3_HR; s11_HR], [s4_HR; s12_HR], [s5_HR; s13_HR], [s6_HR; s14_HR], [s7_HR; s15_HR], [s8_HR; s16_HR], 'VariableNames',{'Combined', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8'},'RowNames',{'C1','C2'}));
-
+ 
 try
     ctx1_10 = hit_rate_2(c1t(end-10:end));
     s1_10 = hit_rate_2(s1t(end-10:end));
@@ -494,6 +496,14 @@ end
 %% REWARDS
 trial_correct = (ismember(TrialRecord.CurrentCondition, [1 5 12 14]) && mul6.ChosenTarget == up) || (ismember(TrialRecord.CurrentCondition, [2 6 9 15]) && mul6.ChosenTarget == right) || (ismember(TrialRecord.CurrentCondition, [3 7 10 16]) && mul6.ChosenTarget == down) || (ismember(TrialRecord.CurrentCondition, [4 8 11 13]) && mul6.ChosenTarget == left);
 small_reward_trial = ismember(TrialRecord.CurrentCondition,[3 4 5 6 9 12 13 16]); % Test for large/ small trial; gd 3/30/22
+% Multiply reward if appropriate
+if TrialRecord.User.BlockRewMult(end) == 1
+    rMult = rew_multiplier;
+else
+    rMult = 1;
+end
+
+disp(['Rew Time: ' num2str(solenoid_time*rMult)])
 
 if trial_correct
     trialerror(0);
@@ -510,16 +520,19 @@ if trial_correct
     if small_reward_trial % Test for large/ small trial; gd 3/30/22
         idle(decision_trace_time, [],71)
         sound(TrialRecord.User.rsfx, TrialRecord.User.rsFs)
-        goodmonkey(solenoid_time, 'numreward', ld, 'pausetime', drop_gaps, 'eventmarker',99);
+        goodmonkey(solenoid_time*rMult, 'numreward', ld, 'pausetime', drop_gaps, 'eventmarker',99);
+        TrialRecord.User.RewardGiven = [TrialRecord.User.RewardGiven; solenoid_time*rMult*ld];
     else
         idle(decision_trace_time,[], 70)
         sound(TrialRecord.User.rbfx, TrialRecord.User.rbFs)
-        goodmonkey(solenoid_time, 'numreward', bd, 'pausetime', drop_gaps, 'eventmarker',99);
+        goodmonkey(solenoid_time*rMult, 'numreward', bd, 'pausetime', drop_gaps, 'eventmarker',99);
+        TrialRecord.User.RewardGiven = [TrialRecord.User.RewardGiven; solenoid_time*rMult*bd];
     end
     
 elseif mul6.ChosenTarget == up
     trialerror(1);
     TrialRecord.User.cond_count(TrialRecord.CurrentCondition) = TrialRecord.User.cond_count(TrialRecord.CurrentCondition) + 1; % 09/22/23 GD: increment cond_counter for CL
+    TrialRecord.User.RewardGiven = [TrialRecord.User.RewardGiven; 0];
     sound(TrialRecord.User.infx, TrialRecord.User.inFs)
     if small_reward_trial
         idle(time_out_sr);
@@ -529,6 +542,7 @@ elseif mul6.ChosenTarget == up
 elseif mul6.ChosenTarget == right
     trialerror(2);
     TrialRecord.User.cond_count(TrialRecord.CurrentCondition) = TrialRecord.User.cond_count(TrialRecord.CurrentCondition) + 1; % 09/22/23 GD: increment cond_counter for CL
+    TrialRecord.User.RewardGiven = [TrialRecord.User.RewardGiven; 0];
     sound(TrialRecord.User.infx, TrialRecord.User.inFs)
     if small_reward_trial
         idle(time_out_sr);
@@ -538,6 +552,7 @@ elseif mul6.ChosenTarget == right
 elseif mul6.ChosenTarget == down
     trialerror(3);
     TrialRecord.User.cond_count(TrialRecord.CurrentCondition) = TrialRecord.User.cond_count(TrialRecord.CurrentCondition) + 1; % 09/22/23 GD: increment cond_counter for CL
+    TrialRecord.User.RewardGiven = [TrialRecord.User.RewardGiven; 0];
     sound(TrialRecord.User.infx, TrialRecord.User.inFs)
     if small_reward_trial
         idle(time_out_sr);
@@ -547,6 +562,7 @@ elseif mul6.ChosenTarget == down
 elseif mul6.ChosenTarget == left
     trialerror(4);
     TrialRecord.User.cond_count(TrialRecord.CurrentCondition) = TrialRecord.User.cond_count(TrialRecord.CurrentCondition) + 1; % 09/22/23 GD: increment cond_counter for CL
+    TrialRecord.User.RewardGiven = [TrialRecord.User.RewardGiven; 0];
     sound(TrialRecord.User.infx, TrialRecord.User.inFs)
     if small_reward_trial
         idle(time_out_sr);
