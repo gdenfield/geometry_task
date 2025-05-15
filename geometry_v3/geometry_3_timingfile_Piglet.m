@@ -560,6 +560,17 @@ else
     rMult = 1;
 end
 
+% Multiplier for correct responses in a row
+if ~isempty(TrialRecord.TrialErrors)
+    if TrialRecord.TrialErrors(end) == 0 && numel(TrialRecord.TrialErrors) > 2
+        i = 1;
+        while TrialRecord.TrialErrors(end-i) == 0 && i < 11
+            i = i + 1;
+        end
+        rMult = 1 + (i-1)/25;
+    end
+end
+disp(['Rew Mult: ' num2str(rMult)])
 disp(['Rew Time: ' num2str(solenoid_time*rMult)])
 
 if trial_correct
