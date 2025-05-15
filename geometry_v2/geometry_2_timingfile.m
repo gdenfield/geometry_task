@@ -495,6 +495,7 @@ end
 
 %% REWARDS
 trial_correct = (ismember(TrialRecord.CurrentCondition, [1 5 12 14]) && mul6.ChosenTarget == up) || (ismember(TrialRecord.CurrentCondition, [2 6 9 15]) && mul6.ChosenTarget == right) || (ismember(TrialRecord.CurrentCondition, [3 7 10 16]) && mul6.ChosenTarget == down) || (ismember(TrialRecord.CurrentCondition, [4 8 11 13]) && mul6.ChosenTarget == left);
+%trial_correct = (ismember(TrialRecord.CurrentCondition, [1 8]) && mul6.ChosenTarget == up) || (ismember(TrialRecord.CurrentCondition, [2 5]) && mul6.ChosenTarget == right) || (ismember(TrialRecord.CurrentCondition, [3 6]) && mul6.ChosenTarget == down) || (ismember(TrialRecord.CurrentCondition, [4 7]) && mul6.ChosenTarget == left); % for 4 stimuli, 8 cond
 small_reward_trial = ismember(TrialRecord.CurrentCondition,[3 4 5 6 9 12 13 16]); % Test for large/ small trial; gd 3/30/22
 % Multiply reward if appropriate
 if TrialRecord.User.BlockRewMult(end) == 1

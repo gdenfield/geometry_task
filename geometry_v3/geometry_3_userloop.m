@@ -1,10 +1,13 @@
-% New version of task for geometry project MJP 07/15/21
+% New version of task for geometry project: 6 fractals, 3 contexts GHD
+% 11/12/24
 
-function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
+function [C,timingfile,userdefined_trialholder] = geometry_3_userloop(MLConfig,TrialRecord)
 % Training Variables
-block_length = 50; % Number of trials before context switch
-sequence_depth = 2; % Number of times each condition should be shown in a given trial sequence
-n_fractals = 4; % 1-4, set to 4 for full set of fractals
+block_length = 30; % Number of trials before context switch
+num_contexts = 3; % Number of contexts
+sequence_depth = repmat([2, 2, 2], 1, num_contexts); % Number of times each condition should be shown in a given trial sequence; ADJUST HERE FOR SUBSET FRACTALS
+n_fractals = 3; % 1-6, set to 6 for full set of fractals
+cl_counter = 1; % adjust for when to trigger correction loop
 
 % Initialization
 C = [];
@@ -17,14 +20,21 @@ persistent incorrect_counts % running tally of incorrect answers
 persistent first_context
 persistent context
 persistent timing_filename_returned
+persistent rem_ctxs
 if isempty(trials_left_in_sequence) || TrialRecord.BlockChange %Reset counters if start of session or block change happened
-    trials_left_in_sequence = sequence_depth + zeros(1,2*n_fractals);
-    correct_counts = zeros(1,2*n_fractals);
-    incorrect_counts = zeros(1,2*n_fractals);
+    trials_left_in_sequence = sequence_depth + zeros(1,num_contexts*n_fractals);
+    correct_counts = zeros(1,num_contexts*n_fractals);
+    incorrect_counts = zeros(1,num_contexts*n_fractals);
     CL_trials = 0;
     TrialRecord.User.contrast = 1;
     TrialRecord.User.switch = 0;
     TrialRecord.User.block_length = block_length;
+    
+    %Update counters for correction loop
+    TrialRecord.User.up_count = 0;
+    TrialRecord.User.right_count = 0;
+    TrialRecord.User.left_count = 0;
+    TrialRecord.User.cond_count = zeros(1,num_contexts*n_fractals);
 end
 if isempty(timing_filename_returned)
     timing_filename_returned = true;
@@ -37,32 +47,63 @@ TrialRecord.User.incorrect_counts = incorrect_counts;
 target_distance = 7; %degrees from center, for all target locations (up, right, down, left)
 up = [0 target_distance];
 right = [target_distance 0];
-down = [0 -target_distance];
 left = [-target_distance 0];
 
 target_color = [255 255 255];
-conditions =... %Context 1: rows 1-4, Context 2: rows 5-8
-   [1 5;  % [stimulus ctx_cue]
-    2 5;
-    3 5;
-    4 5;
-    1 6;
-    2 6;
-    3 6;
-    4 6];
+% Context 1: rows 1-8, Context 2: rows 9-16
+% [stimulus ctx_cue]
+conditions = [repmat(1:n_fractals, 1, num_contexts)', [repmat(n_fractals + 1, 1, n_fractals)'; repmat(n_fractals + 2, 1, n_fractals)'; repmat(n_fractals + 3, 1, n_fractals)']];
+ctxs = 1:3;
 
-% Randomly select block if first trial
+% If first trial, randomly select block and load sounds
 if isempty(TrialRecord.TrialErrors)
-    first_context = randi([1,2]);
+    first_context = randi([1,num_contexts]); %ADJUST HERE TO FIX STARTING CONTEXT
     context = first_context;
+    rem_ctxs = ctxs(ctxs ~= context);
+    
+    rewMult = 0; %randi([0,1]); % determine first reward multiplier value
+    if rewMult
+        fpColor = [50 205 50];
+    else
+        fpColor = [255 255 255];
+    end
+    TrialRecord.User.FP_color = fpColor;
+    
     TrialRecord.User.SC = 0;
+    TrialRecord.User.ChangeTriggeredAtBlock = [];
+    TrialRecord.User.ChangeTriggeredAtBlock = [TrialRecord.User.ChangeTriggeredAtBlock, 1];
     TrialRecord.User.CL_trials = [];
+    TrialRecord.User.BlockRewMult = [];
+    TrialRecord.User.BlockRewMult = [TrialRecord.User.BlockRewMult, rewMult];
+    TrialRecord.User.RewardGiven = [];
+    TrialRecord.User.BlockPerf = [];
+    TrialRecord.User.NewCuesOnes = cell(10, 1);
+    TrialRecord.User.NewCuesTwos = cell(10, 1);
+    TrialRecord.User.NewCuesThrees = cell(10, 1);
+    TrialRecord.User.cueCounter = 1;
+    
+    % Specify name of CC to start
+    TrialRecord.User.ccOneName = 'cc_1.png';
+    TrialRecord.User.ccTwoName = 'cc_2.png';
+    TrialRecord.User.ccThreeName = 'cc_3.png';
+    
+    [TrialRecord.User.abfx, TrialRecord.User.abFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v3\soundfx\flap.mp3');
+    [TrialRecord.User.infx, TrialRecord.User.inFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v3\soundfx\wrong-100536.mp3');
+    [TrialRecord.User.rbfx, TrialRecord.User.rbFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v3\soundfx\point.mp3');
+    [TrialRecord.User.rsfx, TrialRecord.User.rsFs] = audioread('C:\Users\silvia_ML\Documents\geometry_task\geometry_v3\soundfx\point.mp3');
 end
 
+% Define fpColor
+fpColor = TrialRecord.User.FP_color;
 
 % Switch Procedure
-threshold = 0.75; % Hit rate
-window = 8; % trials
+threshold = 0.73; % Hit rate
+window = 30; % trials
+blockThreshold = 0.95; % blockwise performance threshold for CC switch
+
+% Number of blocks needed above threshold to trigger CC switch
+nBlockTrigger = 80; 
+
 ncl = ~TrialRecord.User.CL_trials; %non-correction-loop trials
 completed = ismember(TrialRecord.TrialErrors, 0:4);
 A = TrialRecord.TrialErrors(ncl&completed) == 0;
@@ -80,13 +121,74 @@ if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && cri
     TrialRecord.User.switch = 1; % once triggered, stay triggered!
     switch_test = randi([0,1]); % Determine if actual switch will occur
     if switch_test
-        switch context
-            case 1
-                context = 2;
-            case 2
-                context = 1;
+        
+        % Calculate if Reward Multiplier active
+        rewMult = 0; %randi([0,1]); % ADJUST HERE FOR RANDOM REWARD MULTIPLIER
+        if rewMult
+            fpColor = [50 205 50];
+        else
+            fpColor = [255 255 255];
         end
-        trials_left_in_sequence = sequence_depth + zeros(1,2*n_fractals);
+        TrialRecord.User.BlockRewMult = [TrialRecord.User.BlockRewMult, rewMult];
+        TrialRecord.User.FP_color = fpColor;
+        
+        % Before switch occurs, calculate block performance for CC change
+        % criterion
+        currBlock = TrialRecord.CurrentBlockCount;
+        blockToCalc = TrialRecord.BlockCount == currBlock;
+        blockTrials = TrialRecord.TrialErrors(ncl&completed&blockToCalc) == 0;
+        blockPerf = sum(blockTrials) / numel(blockTrials);
+        TrialRecord.User.BlockPerf = [TrialRecord.User.BlockPerf, blockPerf];
+        
+        % Update CC here if CC change criterion met
+        if (TrialRecord.CurrentBlockCount - (TrialRecord.User.ChangeTriggeredAtBlock(end)-1)) >= nBlockTrigger ...
+                && (sum(TrialRecord.User.BlockPerf(end-(nBlockTrigger-1):end) > blockThreshold) >= nBlockTrigger)
+            
+            % Record block number when cues changed
+            TrialRecord.User.ChangeTriggeredAtBlock = [TrialRecord.User.ChangeTriggeredAtBlock, TrialRecord.CurrentBlockCount+1];
+            
+            % Pick new context cues
+            d = 'C:\Users\silvia_ML\Documents\geometry_task\diag_CC_3\';
+            f = dir([d '*.png']);
+            n = numel(f);
+            idx = randperm(n, num_contexts);
+            TrialRecord.User.ccOneName = f(idx(1)).name;
+            TrialRecord.User.ccTwoName = f(idx(2)).name;
+            TrialRecord.User.ccThreeName = f(idx(3)).name;
+            
+            % Record name of new cues, copy to task dir, move to used dir,
+            % copy over old CC names
+            TrialRecord.User.NewCuesOnes{TrialRecord.User.cueCounter} = TrialRecord.User.ccOneName;
+            TrialRecord.User.NewCuesTwos{TrialRecord.User.cueCounter} = TrialRecord.User.ccTwoName;
+            TrialRecord.User.NewCuesThrees{TrialRecord.User.cueCounter} = TrialRecord.User.ccThreeName;
+            
+            copyfile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v3','f')
+            copyfile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v3','f')
+            copyfile([d TrialRecord.User.ccThreeName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v3','f')
+             
+            copyfile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v3\cc_1.png','f')
+            copyfile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v3\cc_2.png','f')
+            copyfile([d TrialRecord.User.ccThreeName], 'C:\Users\silvia_ML\Documents\geometry_task\geometry_v3\cc_3.png','f')
+            
+            movefile([d TrialRecord.User.ccOneName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC_3','f')
+            movefile([d TrialRecord.User.ccTwoName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC_3','f')
+            movefile([d TrialRecord.User.ccThreeName], 'C:\Users\silvia_ML\Documents\geometry_task\used_diag_CC_3','f')
+            
+            TrialRecord.User.cueCounter = TrialRecord.User.cueCounter + 1;
+        end
+        
+        % DETERMINE NEXT CONTEXT
+        cc_idx = randi([1,numel(rem_ctxs)]);
+        while rem_ctxs(cc_idx) == context
+            cc_idx = randi([1,numel(rem_ctxs)]);
+        end
+        context = rem_ctxs(cc_idx);
+        rem_ctxs = rem_ctxs(rem_ctxs ~= context);
+        if isempty(rem_ctxs)
+            rem_ctxs = ctxs;
+        end
+        
+        trials_left_in_sequence = sequence_depth + zeros(1,num_contexts*n_fractals);
         TrialRecord.User.switch = 0;
     end
 else
@@ -100,8 +202,10 @@ if ~isempty(TrialRecord.TrialErrors)
         correct_counts(TrialRecord.CurrentCondition) = correct_counts(TrialRecord.CurrentCondition)+1;
         CL_trials = [CL_trials 0];
         disp('Correct!')
-    elseif ismember(TrialRecord.TrialErrors(end), [1 2 3 4])
+    elseif ismember(TrialRecord.TrialErrors(end), [1 2 3 4]) && any(TrialRecord.User.cond_count == cl_counter) % 09/22/23 GD: need N=cl_counter wrongs on a condition to trigger CL
         %trials_left_in_sequence(TrialRecord.CurrentCondition) = trials_left_in_sequence(TrialRecord.CurrentCondition)+1;
+        TrialRecord.User.cond_to_repeat = find(TrialRecord.User.cond_count == cl_counter);
+        TrialRecord.User.cond_count(find(TrialRecord.User.cond_count == cl_counter)) = 0;
         incorrect_counts(TrialRecord.CurrentCondition) = incorrect_counts(TrialRecord.CurrentCondition)+1;
         CL_trials = [CL_trials 1];
         disp('CL Trial!')
@@ -114,24 +218,68 @@ if ~isempty(TrialRecord.TrialErrors)
     end
 end
     
-disp(['     trials left: ' num2str(trials_left_in_sequence(1:4)) ' || ' num2str(trials_left_in_sequence(5:8))])
-disp(['  correct counts: ' num2str(correct_counts(1:4)) ' || ' num2str(correct_counts(5:8))])
-disp(['incorrect counts: ' num2str(incorrect_counts(1:4)) ' || ' num2str(incorrect_counts(5:8))])
+disp(['     trials left: ' num2str(trials_left_in_sequence(1:n_fractals)) ' || ' num2str(trials_left_in_sequence((1:n_fractals)+n_fractals)) ' || ' num2str(trials_left_in_sequence((1:n_fractals)+(n_fractals*2)))])
+% disp(['  correct counts: ' num2str(correct_counts(1:n_fractals)) ' || ' num2str(correct_counts((1:n_fractals)+n_fractals))])
+% disp(['incorrect counts: ' num2str(incorrect_counts(1:n_fractals)) ' || ' num2str(incorrect_counts((1:n_fractals)+n_fractals))])
 
 %Reset sequence count if each fractal has been encountered enough times -
 
 
-if sum(trials_left_in_sequence(1,(1:4)+( (context - 1) * 4))) == 0
-    trials_left_in_sequence = sequence_depth + zeros(1,2*n_fractals);
+if sum(trials_left_in_sequence(1,(1:n_fractals)+( (context - 1) * n_fractals))) == 0 %ADJUST HERE FOR SUBSET CONDITIONS
+    trials_left_in_sequence = sequence_depth + zeros(1,num_contexts*n_fractals);
+    TrialRecord.User.cond_count = zeros(1,num_contexts*n_fractals); %09/22/23 GD: reset cond_counter each block
 end
 
 %Pick fractal
 if CL_trials(end) == 1 % if CL trial, repeat condition
-    condition = TrialRecord.ConditionsPlayed(end);
+    % condition = TrialRecord.ConditionsPlayed(end); % old version
+    % condition = find(TrialRecord.User.cond_count >= 2); % 09/22/23 GD: set condition equal to one missed twice, triggering CL
+    condition = TrialRecord.User.cond_to_repeat;
     chosen_condition = conditions(condition,:);
 else % if not CL
     while true
-    condition = randi(n_fractals)+((context-1)*4);
+        % *** ADJUST HERE FOR SUBSET CONDITIONS ***
+        condition = randi(n_fractals)+((context-1)*n_fractals); % condition numbering depends on n_fractals
+        
+%         condProb = rand(1)*100;
+%         if context == 1
+%             if condProb >= 87.5 % opposes fractal 4
+%                 fractal = 8;
+%             elseif condProb >= 75 && condProb < 87.5 % opposes fractal 8
+%                 fractal = 4;
+%             elseif condProb >= 62.5 && condProb < 75 % opposes fractal 3
+%                 fractal = 7;
+%             elseif condProb >= 50 && condProb < 62.5 % opposes fractal 7
+%                 fractal = 3;
+%             elseif condProb >= 37.5 && condProb < 50 % opposes fractal 2
+%                 fractal = 6;
+%             elseif condProb >= 25 && condProb < 37.5 % opposes fractal 6
+%                 fractal = 2;
+%             elseif condProb >= 12.5 && condProb < 25 % opposes fractal 1
+%                 fractal = 5;
+%             else
+%                 fractal = 1;
+%             end
+%         elseif context == 2
+%             if condProb >= 87.5 % opposes fractal 2
+%                 fractal = 8;
+%             elseif condProb >= 75 && condProb < 87.5 % opposes f 8
+%                 fractal = 2;
+%             elseif condProb >= 62.5 && condProb < 75 % opposes f 3
+%                 fractal = 5;
+%             elseif condProb >= 50 && condProb < 62.5 % opposes f 5
+%                 fractal = 3;
+%             elseif condProb >= 37.5 && condProb < 50 % opposes f 4
+%                 fractal = 6;
+%             elseif condProb >= 25 && condProb < 37.5 % opposes f 6
+%                 fractal = 4;
+%             elseif condProb >= 12.5 && condProb < 25 % opposes f 1
+%                 fractal = 7;
+%             else
+%                 fractal = 1;
+%             end
+%         end
+%        condition = fractal + ((context-1)*n_fractals);
     if trials_left_in_sequence(condition) ~= 0
         chosen_condition = conditions(condition,:);
         break
@@ -148,8 +296,9 @@ if ~isempty(TrialRecord.TrialErrors)
     end
 end
 
-% Stimuli
-image_list = {'stim_21.bmp','stim_81.bmp','stim_82.bmp', 'stim_95.bmp', 'cc_1.png', 'cc_2.png'};
+% Stimuli % ADJUST HERE FOR SUBSET OF STIMULI
+% image_list = {'stim_0004v2.bmp','stim_0180v5.bmp','stim_0183v5.bmp', 'stim_0232v2.bmp', 'stim_0262v5.bmp','stim_0370v2.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName, TrialRecord.User.ccThreeName};
+image_list = {'stim_0004v2.bmp','stim_0180v5.bmp','stim_0370v2.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName, TrialRecord.User.ccThreeName};
 stimulus = image_list{chosen_condition(1)};
 ctx_cue = image_list{chosen_condition(2)};
 
@@ -157,7 +306,7 @@ ctx_cue = image_list{chosen_condition(2)};
 %1: fixation_point
 C(1).Type = 'crc';
 C(1).Radius = 0.1;     % visual angle
-C(1).Color = [255 255 255];  % [R G B]
+C(1).Color = fpColor;  % [R G B]
 C(1).FillFlag = 1;
 C(1).Xpos = 0;
 C(1).Ypos = 0;
@@ -200,28 +349,28 @@ C(6).FillFlag = 1;
 C(6).Xpos = right(1);
 C(6).Ypos = right(2);
 
-%7: down
+% %7: down
+% C(7).Type = 'crc';
+% C(7).Radius = 0.1;     % visual angle
+% C(7).Color = target_color;  % [R G B]
+% C(7).FillFlag = 1;
+% C(7).Xpos = down(1);
+% C(7).Ypos = down(2);
+
+%8: left
 C(7).Type = 'crc';
 C(7).Radius = 0.1;     % visual angle
 C(7).Color = target_color;  % [R G B]
 C(7).FillFlag = 1;
-C(7).Xpos = down(1);
-C(7).Ypos = down(2);
-
-%8: left
-C(8).Type = 'crc';
-C(8).Radius = 0.1;     % visual angle
-C(8).Color = target_color;  % [R G B]
-C(8).FillFlag = 1;
-C(8).Xpos = left(1);
-C(8).Ypos = left(2);
+C(7).Xpos = left(1);
+C(7).Ypos = left(2);
 
 %9: SC
-C(9).Type = 'pic';
-C(9).Name = 'sc.png';
-C(9).Xpos = 0;
-C(9).Ypos = 0;
-C(9).Colorkey = [0 0 0]; %sets black as transparent
+C(8).Type = 'pic';
+C(8).Name = 'sc.png';
+C(8).Xpos = 0;
+C(8).Ypos = 0;
+C(8).Colorkey = [0 0 0]; %sets black as transparent
 
 
 TrialRecord.User.CL_trials = CL_trials;

@@ -3,7 +3,7 @@
 function [C,timingfile,userdefined_trialholder] = geometry_userloop(MLConfig,TrialRecord)
 % Training Variables
 block_length = 32; % Number of trials before context switch
-sequence_depth = repmat([2, 2, 2, 2, 2, 2, 2, 2], 1, 2); % Number of times each condition should be shown in a given trial sequence; ADJUST HERE FOR SUBSET FRACTALS
+sequence_depth = repmat([0, 0, 0, 0, 2, 2, 2, 2], 1, 2); % Number of times each condition should be shown in a given trial sequence; ADJUST HERE FOR SUBSET FRACTALS
 n_fractals = 8; % 1-8, set to 8 for full set of fractals
 cl_counter = 1; % adjust for when to trigger correction loop
 
@@ -58,7 +58,7 @@ if isempty(TrialRecord.TrialErrors)
     first_context = randi([1,2]); %ADJUST HERE TO FIX STARTING CONTEXT
     context = first_context;
     
-    rewMult = randi([0,1]); % determine first reward multiplier value
+    rewMult = 0; %randi([0,1]); % determine first reward multiplier value
     if rewMult
         fpColor = [50 205 50];
     else
@@ -97,7 +97,7 @@ window = 10; % trials
 blockThreshold = 0.45; % blockwise performance threshold for CC switch
 
 % Number of blocks needed above threshold to trigger CC switch
-nBlockTrigger = 6; 
+nBlockTrigger = 8; 
 
 ncl = ~TrialRecord.User.CL_trials; %non-correction-loop trials
 completed = ismember(TrialRecord.TrialErrors, 0:4);
@@ -118,7 +118,7 @@ if ((TrialRecord.CurrentTrialWithinBlock >= TrialRecord.User.block_length && cri
     if switch_test
         
         % Calculate if Reward Multiplier active
-        rewMult = randi([0,1]);
+        rewMult = 0; %randi([0,1]); % ADJUST HERE FOR RANDOM REWARD MULTIPLIER
         if rewMult
             fpColor = [50 205 50];
         else
@@ -225,46 +225,46 @@ else % if not CL
     while true
         % *** ADJUST HERE FOR SUBSET CONDITIONS ***
         % condition = randi(n_fractals)+((context-1)*n_fractals); % condition numbering depends on n_fractals %ADJUST HERE FOR SUBSET CONDITIONS
-        % condition = (randi(4)+4)+((context-1)*n_fractals); % for fractals 5-8
-        condProb = rand(1)*100;
-        if context == 1
-            if condProb >= 87.5 % opposes fractal 4
-                fractal = 8;
-            elseif condProb >= 75 && condProb < 87.5 % opposes fractal 8
-                fractal = 4;
-            elseif condProb >= 62.5 && condProb < 75 % opposes fractal 3
-                fractal = 7;
-            elseif condProb >= 50 && condProb < 62.5 % opposes fractal 7
-                fractal = 3;
-            elseif condProb >= 37.5 && condProb < 50 % opposes fractal 2
-                fractal = 6;
-            elseif condProb >= 25 && condProb < 37.5 % opposes fractal 6
-                fractal = 2;
-            elseif condProb >= 12.5 && condProb < 25 % opposes fractal 1
-                fractal = 5;
-            else
-                fractal = 1;
-            end
-        elseif context == 2
-            if condProb >= 87.5 % opposes fractal 2
-                fractal = 8;
-            elseif condProb >= 75 && condProb < 87.5 % opposes f 8
-                fractal = 2;
-            elseif condProb >= 62.5 && condProb < 75 % opposes f 3
-                fractal = 5;
-            elseif condProb >= 50 && condProb < 62.5 % opposes f 5
-                fractal = 3;
-            elseif condProb >= 37.5 && condProb < 50 % opposes f 4
-                fractal = 6;
-            elseif condProb >= 25 && condProb < 37.5 % opposes f 6
-                fractal = 4;
-            elseif condProb >= 12.5 && condProb < 25 % opposes f 1
-                fractal = 7;
-            else
-                fractal = 1;
-            end
-        end
-        condition = fractal + ((context-1)*n_fractals);
+        condition = (randi(4)+4)+((context-1)*n_fractals); % for fractals 5-8
+%         condProb = rand(1)*100;
+%         if context == 1
+%             if condProb >= 87.5 % opposes fractal 4
+%                 fractal = 8;
+%             elseif condProb >= 75 && condProb < 87.5 % opposes fractal 8
+%                 fractal = 4;
+%             elseif condProb >= 62.5 && condProb < 75 % opposes fractal 3
+%                 fractal = 7;
+%             elseif condProb >= 50 && condProb < 62.5 % opposes fractal 7
+%                 fractal = 3;
+%             elseif condProb >= 37.5 && condProb < 50 % opposes fractal 2
+%                 fractal = 6;
+%             elseif condProb >= 25 && condProb < 37.5 % opposes fractal 6
+%                 fractal = 2;
+%             elseif condProb >= 12.5 && condProb < 25 % opposes fractal 1
+%                 fractal = 5;
+%             else
+%                 fractal = 1;
+%             end
+%         elseif context == 2
+%             if condProb >= 87.5 % opposes fractal 2
+%                 fractal = 8;
+%             elseif condProb >= 75 && condProb < 87.5 % opposes f 8
+%                 fractal = 2;
+%             elseif condProb >= 62.5 && condProb < 75 % opposes f 3
+%                 fractal = 5;
+%             elseif condProb >= 50 && condProb < 62.5 % opposes f 5
+%                 fractal = 3;
+%             elseif condProb >= 37.5 && condProb < 50 % opposes f 4
+%                 fractal = 6;
+%             elseif condProb >= 25 && condProb < 37.5 % opposes f 6
+%                 fractal = 4;
+%             elseif condProb >= 12.5 && condProb < 25 % opposes f 1
+%                 fractal = 7;
+%             else
+%                 fractal = 1;
+%             end
+%         end
+%        condition = fractal + ((context-1)*n_fractals);
     if trials_left_in_sequence(condition) ~= 0
         chosen_condition = conditions(condition,:);
         break
@@ -283,6 +283,7 @@ end
 
 % Stimuli
 image_list = {'stim_1539v4.bmp','stim_0042v2.bmp','stim_0233v3.bmp', 'stim_0016v2.bmp', 'stim_1960v1.bmp','stim_A12.bmp','stim_A14.bmp', 'stim_B5.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName};
+% image_list = {'stim_1539v4.bmp','stim_0042v2.bmp','stim_0233v3.bmp', 'stim_0016v2.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName};
 stimulus = image_list{chosen_condition(1)};
 ctx_cue = image_list{chosen_condition(2)};
 

@@ -175,7 +175,7 @@ TrialRecord.User.CL_trials = CL_trials;
 
 %Adjust contrast on instructed trials within CL
 if CL_errors >= instructed_threshold
-    contrast = TrialRecord.User.contrast - 0.2;
+    contrast = TrialRecord.User.contrast - 0.5;
 %       %To reset counter after correct CL trials
 %     if TrialRecord.TrialErrors(end) == 9
 %         CL_errors = 0;
