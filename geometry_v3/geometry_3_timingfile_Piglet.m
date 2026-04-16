@@ -562,10 +562,13 @@ end
 
 % Multiplier for correct responses in a row
 if ~isempty(TrialRecord.TrialErrors)
-    if TrialRecord.TrialErrors(end) == 0 && numel(TrialRecord.TrialErrors) > 2
+    if TrialRecord.TrialErrors(end) == 0 && numel(TrialRecord.TrialErrors) > 3
         i = 1;
         while TrialRecord.TrialErrors(end-i) == 0 && i < 11
             i = i + 1;
+            if i == numel(TrialRecord.TrialErrors)
+                break
+            end
         end
         rMult = 1 + (i-1)/25;
     end

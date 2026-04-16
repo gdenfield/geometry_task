@@ -3,7 +3,7 @@
 
 function [C,timingfile,userdefined_trialholder] = geometry_3_userloop_Piglet(MLConfig,TrialRecord)
 % Training Variables
-block_length = 27; % Number of trials before context switch
+block_length = 24; % Number of trials before context switch
 num_contexts = 3; % Number of contexts
 sequence_depth = repmat([2, 2, 2], 1, num_contexts); % Number of times each condition should be shown in a given trial sequence; ADJUST HERE FOR SUBSET FRACTALS
 n_fractals = 3; % 1-6, set to 6 for full set of fractals
@@ -317,7 +317,7 @@ end
 
 % Stimuli % ADJUST HERE FOR SUBSET OF STIMULI
 % image_list = {'stim_0004v2.bmp','stim_0180v5.bmp','stim_0183v5.bmp', 'stim_0232v2.bmp', 'stim_0262v5.bmp','stim_0370v2.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName, TrialRecord.User.ccThreeName};
-image_list = {'stim_J.bmp','stim_K.bmp','stim_L.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName, TrialRecord.User.ccThreeName};
+image_list = {'stim_M.bmp','stim_N.bmp','stim_O.bmp', TrialRecord.User.ccOneName, TrialRecord.User.ccTwoName, TrialRecord.User.ccThreeName};
 stimulus = image_list{chosen_condition(1)};
 ctx_cue = image_list{chosen_condition(2)};
 
